@@ -5,11 +5,32 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes">
     <title>第4章 Arrow：高性能数据后端</title>
     <link rel="stylesheet" href="theme.css">
+    <style>
+        .skip-link { position:absolute; left:-999px; top:0; z-index:100; background:#6d28d9; color:#fff; padding:10px 18px; border-radius:0 0 12px 0; text-decoration:none; font-weight:600; }
+        .skip-link:focus { left:0; }
+        .main-content h1 { color:#4c1d95; font-size:1.9rem; line-height:1.35; margin:0 0 6px; }
+        .dek { color:#53676d; font-size:1.02rem; line-height:1.7; margin:0 0 10px; }
+        figure { margin:26px 0; }
+        figure svg { width:100%; height:auto; display:block; }
+        figcaption { color:#4c1d95; font-size:0.92rem; line-height:1.7; margin-top:10px; padding-left:12px; border-left:4px solid #c4b5fd; }
+        .caveat { font-size:0.85rem; color:#7c5a10; background:#fef9c3; border-radius:10px; padding:8px 12px; margin:8px 0 14px; line-height:1.65; }
+        a:focus-visible { outline:3px solid #8b5cf6; outline-offset:2px; }
+        .table-wrap { overflow-x:auto; margin:15px 0; -webkit-overflow-scrolling:touch; }
+        .table-wrap table { margin:0; }
+        th, td { overflow-wrap:anywhere; }
+        pre { overflow-x:auto; max-width:100%; }
+        a { overflow-wrap:anywhere; }
+        .refs { background:#faf8ff; border:1px solid #c4b5fd; border-radius:16px; padding:14px 18px; margin:28px 0 0; }
+        .refs h2 { font-size:1.15rem; margin:0 0 8px; }
+        .refs li { line-height:1.7; }
+        @media (prefers-reduced-motion: reduce) { * { transition:none !important; animation:none !important; } }
+    </style>
 </head>
 <body>
+<a class="skip-link" href="#content">跳转至正文</a>
 <div class="double-border">
 <div class="container">
-    <div class="sidebar">
+    <nav class="sidebar" aria-label="课程目录">
         <h3>📊 课程目录</h3>
         <ul class="chapter-list">
             <li><a href="01.html">第1章 AI数据集全景图</a></li>
@@ -41,10 +62,12 @@
             <li><a href="27.html">第27章 前沿基准数据集巡览</a></li>
             <li><a href="28.html">第28章 综合实战项目</a></li>
         </ul>
-    </div>
-    <div class="main-content">
+    </nav>
+    <main id="content" class="main-content">
+    <article>
 
-        <h2>第4章：Arrow：高性能数据后端</h2>
+        <h1>第4章：Arrow：高性能数据后端</h1>
+        <p class="dek">列式内存布局、零拷贝与内存映射，以及 Parquet 与 Arrow 的分工——理解 datasets 库的性能基座。</p>
 
         <p>如果你以前主要用Pandas和JSON/CSV处理数据，下面这个场景你一定不陌生：花20分钟加载一个5GB的CSV，结果发现内存占用飙升到了12GB，系统开始疯狂swap，风扇狂转——而你只是想看一眼数据的前5行是什么样。更绝望的是，你用完Pandas后释放DataFrame，Python的内存却死也不还给操作系统。</p>
 
@@ -63,11 +86,14 @@
         <div class="highlight">
             <strong>核心矛盾：</strong>AI数据处理中，<strong>95%的操作是列操作</strong>（归一化、编码、统计），但传统数据格式的存储方式是行式的。Arrow把存储方式从"行"翻转为"列"，从根本上解决了这个矛盾。
         </div>
+        <p class="caveat">数值说明：“95% 的操作是列操作”是经验性概括，不同任务差异很大，请按教学示意理解。</p>
 
         <h3>Arrow的诞生背景</h3>
 
         <p>Apache Arrow 最初由 Wes McKinney（Pandas的作者）和各大数据平台（Cloudera、Databricks、Two Sigma）的工程师联合发起，目标是创造一个<strong>标准化的、跨语言的、零拷贝的内存数据格式</strong>。Arrow 1.0.0 于2019年发布，到2026年已经演进到18.x版本，成为Hugging Face datasets、Polars、DuckDB、Spark 3.x+等众多现代数据工具的共同基石。</p>
+        <p class="caveat">版本与量级说明：Arrow 版本号、“JSON 膨胀 3-5x”等为教学示意，随版本与数据而异；请以 Arrow 官方发布说明为准。</p>
 
+        <div class="table-wrap" tabindex="0" role="region" aria-label="常见数据格式对比表（可横向滚动）">
         <table>
             <thead>
                 <tr>
@@ -130,6 +156,7 @@
                 </tr>
             </tbody>
         </table>
+        </div>
 
         <h2>列式存储原理</h2>
 
@@ -149,6 +176,39 @@
 
         <p>区别一目了然。如果你只需要计算score的均值，列式存储只需要读取第三个内存块（3个float64），而后者需要读取全部9个值。随着数据量增大，这个差距会从"几倍"变成"几个数量级"。</p>
 
+        <figure>
+          <svg viewBox="0 0 800 280" role="img" aria-labelledby="f4a-t f4a-d" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto">
+            <title id="f4a-t">行式与列式内存布局对比</title>
+            <desc id="f4a-d">同一份 age/name/score 数据，行式按样本连续存放，列式按列分组连续存放；读取 score 列时列式只命中三个连续的值。</desc>
+            <rect x="0" y="0" width="800" height="280" fill="#ffffff"/>
+            <g font-family="system-ui, 'PingFang SC', sans-serif" font-size="13">
+              <text x="20" y="26" fill="#4c1d95" font-weight="700">行式存储：按样本逐行连续</text>
+              <rect x="20" y="38" width="80" height="40" fill="#ede9fe" stroke="#8b5cf6"/><text x="60" y="63" text-anchor="middle">25</text>
+              <rect x="100" y="38" width="80" height="40" fill="#ccfbf1" stroke="#14b8a6"/><text x="140" y="63" text-anchor="middle">Alice</text>
+              <rect x="180" y="38" width="80" height="40" fill="#fef3c7" stroke="#f59e0b"/><text x="220" y="63" text-anchor="middle">88.5</text>
+              <rect x="260" y="38" width="80" height="40" fill="#ede9fe" stroke="#8b5cf6"/><text x="300" y="63" text-anchor="middle">30</text>
+              <rect x="340" y="38" width="80" height="40" fill="#ccfbf1" stroke="#14b8a6"/><text x="380" y="63" text-anchor="middle">Bob</text>
+              <rect x="420" y="38" width="80" height="40" fill="#fef3c7" stroke="#f59e0b"/><text x="460" y="63" text-anchor="middle">91.0</text>
+              <rect x="500" y="38" width="80" height="40" fill="#ede9fe" stroke="#8b5cf6"/><text x="540" y="63" text-anchor="middle">22</text>
+              <rect x="580" y="38" width="80" height="40" fill="#ccfbf1" stroke="#14b8a6"/><text x="620" y="63" text-anchor="middle">Carol</text>
+              <rect x="660" y="38" width="80" height="40" fill="#fef3c7" stroke="#f59e0b"/><text x="700" y="63" text-anchor="middle">76.5</text>
+              <text x="20" y="140" fill="#0f766e" font-weight="700">列式存储：同一列的数据连续排列</text>
+              <rect x="20" y="152" width="80" height="40" fill="#ede9fe" stroke="#8b5cf6"/><text x="60" y="177" text-anchor="middle">25</text>
+              <rect x="100" y="152" width="80" height="40" fill="#ede9fe" stroke="#8b5cf6"/><text x="140" y="177" text-anchor="middle">30</text>
+              <rect x="180" y="152" width="80" height="40" fill="#ede9fe" stroke="#8b5cf6"/><text x="220" y="177" text-anchor="middle">22</text>
+              <text x="270" y="177" fill="#6b7280">age</text>
+              <rect x="320" y="152" width="80" height="40" fill="#ccfbf1" stroke="#14b8a6"/><text x="360" y="177" text-anchor="middle">Alice</text>
+              <rect x="400" y="152" width="80" height="40" fill="#ccfbf1" stroke="#14b8a6"/><text x="440" y="177" text-anchor="middle">Bob</text>
+              <rect x="480" y="152" width="80" height="40" fill="#ccfbf1" stroke="#14b8a6"/><text x="520" y="177" text-anchor="middle">Carol</text>
+              <text x="570" y="177" fill="#6b7280">name</text>
+              <rect x="620" y="152" width="80" height="40" fill="#fef3c7" stroke="#f59e0b"/><text x="660" y="177" text-anchor="middle">88.5</text>
+              <rect x="700" y="152" width="60" height="40" fill="#fef3c7" stroke="#f59e0b"/><text x="730" y="177" text-anchor="middle">91.0</text>
+              <text x="20" y="238" fill="#334155">计算 score 均值：列式只需读取 score 那一段连续内存（3 个值），行式却要扫过全部 9 个值</text>
+            </g>
+          </svg>
+          <figcaption>图1：行式存储把一条样本的字段放在一起，列式存储把同一字段的值放在一起。按列读取时，列式的访存量与需要的数据量成正比。</figcaption>
+        </figure>
+
         <h3>向量化操作</h3>
 
         <p>列式布局的另一个关键优势是<strong>向量化</strong>。因为同一列的所有值在内存中是连续排列的，CPU可以一次加载多个值到SIMD寄存器中并行计算。举个例子，归一化一列浮点数——在列式存储中，底层就是一个连续的float32数组，可以直接调用SIMD指令进行向量化加减乘除。而行式存储中的数据是分散的，每次计算都涉及随机访存，无法利用硬件向量化能力。</p>
@@ -163,6 +223,32 @@
         </ul>
 
         <p>datasets库的典型数据流是：数据在磁盘上存为Parquet（节省空间），加载时解码为Arrow Table（高性能计算），需要时转换为numpy/torch tensor（给模型消费）。这三者的无缝衔接构成了datasets库的性能基座。</p>
+
+        <figure>
+          <svg viewBox="0 0 800 200" role="img" aria-labelledby="f4b-t f4b-d" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto">
+            <title id="f4b-t">Parquet → Arrow → 训练框架的数据流</title>
+            <desc id="f4b-d">数据在磁盘上以 Parquet 存储，加载后解码为内存中的 Arrow Table，再由 with_format 按需转为 numpy 或 torch 张量送入模型。</desc>
+            <defs><marker id="f4b-ar" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6 Z" fill="#6d28d9"/></marker></defs>
+            <rect x="0" y="0" width="800" height="200" fill="#ffffff"/>
+            <g font-family="system-ui, 'PingFang SC', sans-serif" font-size="14">
+              <rect x="20" y="66" width="200" height="76" rx="14" fill="#fef3c7" stroke="#f59e0b" stroke-width="2"/>
+              <text x="120" y="98" text-anchor="middle" fill="#92400e" font-weight="700">Parquet</text>
+              <text x="120" y="122" text-anchor="middle" font-size="12" fill="#78350f">磁盘 · 列式压缩存储</text>
+              <rect x="300" y="66" width="200" height="76" rx="14" fill="#ede9fe" stroke="#6d28d9" stroke-width="2"/>
+              <text x="400" y="98" text-anchor="middle" fill="#5b21b6" font-weight="700">Arrow Table</text>
+              <text x="400" y="122" text-anchor="middle" font-size="12" fill="#4c1d95">内存 · 零拷贝计算</text>
+              <rect x="580" y="66" width="200" height="76" rx="14" fill="#ccfbf1" stroke="#14b8a6" stroke-width="2"/>
+              <text x="680" y="98" text-anchor="middle" fill="#0f766e" font-weight="700">numpy / torch</text>
+              <text x="680" y="122" text-anchor="middle" font-size="12" fill="#115e59">with_format · 按需张量</text>
+              <path d="M220 104 H296" stroke="#6d28d9" stroke-width="2" marker-end="url(#f4b-ar)"/>
+              <path d="M500 104 H576" stroke="#6d28d9" stroke-width="2" marker-end="url(#f4b-ar)"/>
+              <text x="258" y="96" text-anchor="middle" font-size="12" fill="#4c1d95">解码/mmap</text>
+              <text x="538" y="96" text-anchor="middle" font-size="12" fill="#4c1d95">转换</text>
+              <text x="400" y="176" text-anchor="middle" font-size="12" fill="#64748b">存储格式与计算格式分离：Parquet 负责省空间，Arrow 负责快计算</text>
+            </g>
+          </svg>
+          <figcaption>图2：datasets 的典型数据流。Parquet 在磁盘上紧凑存放，解码为 Arrow Table 后几乎零拷贝地支撑过滤、变换，最后按需转成训练框架的张量。</figcaption>
+        </figure>
 
         <div class="tip">
             <strong>一句话总结：</strong>Parquet是存储格式，Arrow是计算格式。Parquet≈冰箱（保鲜存储），Arrow≈砧板（处理食材）。data pipeline中两者配合使用。
@@ -309,6 +395,7 @@ dataset = Dataset.from_parquet("huge_data.parquet")</code></pre>
 
         <p>理论说得再多，不如一份实际的性能数据有说服力。以下是在同一台机器（24核CPU，64GB RAM，SSD）上对6500万行、5列数据（约2.8GB原始CSV）的基准测试结果：</p>
 
+        <div class="table-wrap" tabindex="0" role="region" aria-label="性能对比表（教学示意，可横向滚动）">
         <table>
             <thead>
                 <tr>
@@ -357,8 +444,9 @@ dataset = Dataset.from_parquet("huge_data.parquet")</code></pre>
                 </tr>
             </tbody>
         </table>
+        </div>
 
-        <p>这份数据来自datasets库官方的性能基准测试（2025年更新）。Arrow在<strong>每一项指标上都以数量级的优势领先CSV</strong>。最引人注目的是"峰值内存占用"——同样的数据，CSV需要12.6GB因为要全量解析进内存，而Arrow通过mmap只需要0.3GB。</p>
+        <p>上表为<strong>教学示意</strong>，Arrow在<strong>每一项指标上都以数量级的优势领先CSV</strong>。最引人注目的是"峰值内存占用"——同样的数据，CSV需要12.6GB因为要全量解析进内存，而Arrow通过mmap只需要0.3GB。</p>
 
         <div class="highlight">
             <strong>关键认知：</strong>Arrow/Parquet不是"略微快一点"，而是<strong>快1-2个数量级</strong>。如果你还在用CSV作为AI数据pipeline的主要格式，迁移到Arrow/Parquet是你能在数据工程上做的ROI最高的单一优化。
@@ -399,6 +487,7 @@ print(f"内存友好处理: {dataset['score'].mean()}")</code></pre>
         </div>
 
         <p>团队后来都调侃说："以前我们觉得64GB不够用，现在才知道64GB其实绰绰有余——只是我们用错了工具。" 更换为Arrow后，团队的数据处理效率提升了20倍，服务器成本降低了60%。</p>
+        <p class="caveat">案例说明：本 OOM 故事与“20 倍/60%”等数字为教学简化示例，用于对比内存模型，不代表特定公司的公开报告。</p>
 
         <h2>本章小结</h2>
 
@@ -414,12 +503,23 @@ print(f"内存友好处理: {dataset['score'].mean()}")</code></pre>
 
         <p>下一章我们将利用Arrow的能力，深入数据集的格式转换机制——如何在torch、numpy、pandas、jax等不同后端之间自由切换，以及格式转换中那些容易忽略的陷阱。</p>
 
+        <section class="refs" aria-labelledby="refs-h">
+          <h2 id="refs-h">参考来源</h2>
+          <ul>
+            <li>Apache Arrow 官网：<a href="https://arrow.apache.org/">arrow.apache.org</a>（跨语言内存格式、版本与发布历史）</li>
+            <li>Arrow 列式格式规范：<a href="https://arrow.apache.org/docs/format/Columnar.html">arrow.apache.org/docs/format/Columnar.html</a>（列式布局与零拷贝语义）</li>
+            <li>Apache Parquet：<a href="https://parquet.apache.org/">parquet.apache.org</a>（磁盘列式压缩存储）</li>
+            <li>Hugging Face datasets 与 Arrow：<a href="https://huggingface.co/docs/datasets/about_arrow">huggingface.co/docs/datasets/about_arrow</a>（内存映射与缓存格式）</li>
+          </ul>
+        </section>
+
         <div class="footer-nav">
             <a href="03.html">← 上一章</a>
             <a href="index.html">📖 返回目录</a>
             <a href="05.html">下一章 →</a>
         </div>
-    </div>
+    </article>
+    </main>
 </div>
 </div>
 </body>

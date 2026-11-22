@@ -5,11 +5,32 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes">
     <title>第7章 Split切分与采样策略</title>
     <link rel="stylesheet" href="theme.css">
+    <style>
+        .skip-link { position:absolute; left:-999px; top:0; z-index:100; background:#6d28d9; color:#fff; padding:10px 18px; border-radius:0 0 12px 0; text-decoration:none; font-weight:600; }
+        .skip-link:focus { left:0; }
+        .main-content h1 { color:#4c1d95; font-size:1.9rem; line-height:1.35; margin:0 0 6px; }
+        .dek { color:#53676d; font-size:1.02rem; line-height:1.7; margin:0 0 10px; }
+        figure { margin:26px 0; }
+        figure svg { width:100%; height:auto; display:block; }
+        figcaption { color:#4c1d95; font-size:0.92rem; line-height:1.7; margin-top:10px; padding-left:12px; border-left:4px solid #c4b5fd; }
+        .caveat { font-size:0.85rem; color:#7c5a10; background:#fef9c3; border-radius:10px; padding:8px 12px; margin:8px 0 14px; line-height:1.65; }
+        a:focus-visible { outline:3px solid #8b5cf6; outline-offset:2px; }
+        .table-wrap { overflow-x:auto; margin:15px 0; -webkit-overflow-scrolling:touch; }
+        .table-wrap table { margin:0; }
+        th, td { overflow-wrap:anywhere; }
+        pre { overflow-x:auto; max-width:100%; }
+        a { overflow-wrap:anywhere; }
+        .refs { background:#faf8ff; border:1px solid #c4b5fd; border-radius:16px; padding:14px 18px; margin:28px 0 0; }
+        .refs h2 { font-size:1.15rem; margin:0 0 8px; }
+        .refs li { line-height:1.7; }
+        @media (prefers-reduced-motion: reduce) { * { transition:none !important; animation:none !important; } }
+    </style>
 </head>
 <body>
+<a class="skip-link" href="#content">跳转至正文</a>
 <div class="double-border">
 <div class="container">
-    <div class="sidebar">
+    <nav class="sidebar" aria-label="课程目录">
         <h3>📊 课程目录</h3>
         <ul class="chapter-list">
             <li><a href="01.html">第1章 AI数据集全景图</a></li>
@@ -41,10 +62,12 @@
             <li><a href="27.html">第27章 前沿基准数据集巡览</a></li>
             <li><a href="28.html">第28章 综合实战项目</a></li>
         </ul>
-    </div>
-    <div class="main-content">
+    </nav>
+    <main id="content" class="main-content">
+    <article>
 
-        <h2>第7章：Split切分与采样策略</h2>
+        <h1>第7章：Split切分与采样策略</h1>
+        <p class="dek">当数据集没有现成 split，如何按正确的方式切分？随机切分、分层采样、shard 分片与用户级切分，决定了评测是否可信。</p>
 
         <p>前面几章我们加载的数据集大多已经有了现成的train/test/validation split。但现实项目里，这种情况更像是"例外"而非"常态"。你手头可能只有一堆原始CSV文件，或者从生产数据库导出的一张表，需要自己决定如何划分数据集。更麻烦的是——简单的随机切分在很多场景下是不够的，甚至可能是有害的。</p>
 
@@ -85,6 +108,7 @@ final_dataset = DatasetDict({
 
         <h3>参数详解</h3>
 
+        <div class="table-wrap" tabindex="0" role="region" aria-label="train_test_split 参数表（可横向滚动）">
         <table>
             <thead>
                 <tr>
@@ -127,6 +151,7 @@ final_dataset = DatasetDict({
                 </tr>
             </tbody>
         </table>
+        </div>
 
         <h3>Seed的重要性</h3>
 
@@ -150,6 +175,32 @@ dataset.train_test_split(test_size=0.2)  # 不要这样做</code></pre>
         <h2>分层采样</h2>
 
         <p>随机切分在大多数情况下工作良好，但有一个例外——<strong>类别不均衡</strong>。如果你的数据集中90%是类别A、10%是类别B，简单的随机切分可能导致某个split中完全没有类别B的样本。分层采样就是解决这个问题的。</p>
+
+        <figure>
+          <svg viewBox="0 0 800 280" role="img" aria-labelledby="f7a-t f7a-d" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto">
+            <title id="f7a-t">随机切分与分层采样的测试集正样本比例</title>
+            <desc id="f7a-d">在正样本约占 5% 的不均衡数据上，随机切分时测试集的正样本比例随 seed 在 0.5% 到 9% 间波动；分层采样则稳定在约 5%。</desc>
+            <rect x="0" y="0" width="800" height="280" fill="#ffffff"/>
+            <g font-family="system-ui, 'PingFang SC', sans-serif" font-size="12">
+              <text x="40" y="28" font-size="14" font-weight="700" fill="#4c1d95">随机切分（不设分层）</text>
+              <line x1="40" y1="210" x2="360" y2="210" stroke="#cbd5e1"/>
+              <rect x="70" y="150" width="56" height="60" fill="#ccfbf1" stroke="#14b8a6"/><text x="98" y="142" text-anchor="middle">约 5%</text><text x="98" y="228" text-anchor="middle">训练集</text>
+              <rect x="170" y="204" width="56" height="6" fill="#f59e0b" stroke="#f59e0b"/>
+              <rect x="240" y="72" width="56" height="108" fill="#fef3c7" stroke="#f59e0b" stroke-dasharray="4 3"/>
+              <text x="268" y="64" text-anchor="middle">0.5% ~ 9%</text>
+              <rect x="170" y="150" width="126" height="60" fill="none" stroke="#94a3b8" stroke-dasharray="4 3"/>
+              <text x="233" y="142" text-anchor="middle" fill="#64748b">随 seed 波动</text>
+              <text x="198" y="228" text-anchor="middle">测试集（多次切分）</text>
+              <line x1="400" y1="30" x2="400" y2="250" stroke="#e2e8f0"/>
+              <text x="440" y="28" font-size="14" font-weight="700" fill="#0f766e">分层采样（stratify_by_column）</text>
+              <line x1="440" y1="210" x2="760" y2="210" stroke="#cbd5e1"/>
+              <rect x="470" y="150" width="56" height="60" fill="#ccfbf1" stroke="#14b8a6"/><text x="498" y="142" text-anchor="middle">约 5%</text><text x="498" y="228" text-anchor="middle">训练集</text>
+              <rect x="570" y="150" width="56" height="60" fill="#ede9fe" stroke="#6d28d9"/><text x="598" y="142" text-anchor="middle">约 5%</text><text x="598" y="228" text-anchor="middle">测试集（稳定）</text>
+              <text x="400" y="268" text-anchor="middle" fill="#64748b">同一份 5% 正样本数据：随机切分的评测会随 seed 漂移，分层采样把它拉回真实比例</text>
+            </g>
+          </svg>
+          <figcaption>图1：当类别不均衡时，随机切分可能抽出正样本极少的测试集，导致指标波动。分层采样按标签列分层，使各 split 的类别比例贴近全集。</figcaption>
+        </figure>
 
         <h3>什么情况下必须分层</h3>
 
@@ -214,6 +265,7 @@ print(f"分层切分后的测试集正样本比例: {test_pos_ratio_strat:.2%}")
         <div class="highlight">
             <strong>什么时候不需要分层？</strong>如果你的数据集足够大（>10万条）且标签分布没有严重倾斜（最少的类别>10%），随机切分已经足够。分层采样只在<strong>小样本</strong>或<strong>严重不均衡</strong>时是必要的。过度使用分层不会提高模型质量，只是徒增代码复杂度。
         </div>
+        <p class="caveat">经验说明：“>10 万条且最少类别>10% 就不必分层”是经验性阈值，请结合具体任务验证。</p>
 
         <h2>shard 分片</h2>
 
@@ -270,6 +322,30 @@ dataloader = DataLoader(
             </ul>
             对于大多数深度学习的SGD训练来说，<code>contiguous=True</code> 和 <code>contiguous=False</code> 的区别可以忽略——因为每个进程内部还会做shuffle。但如果你有特殊的样本排序需求（比如按序列长度排序以优化padding），可能需要选择特定的切分方式。
         </div>
+
+        <figure>
+          <svg viewBox="0 0 800 300" role="img" aria-labelledby="f7b-t f7b-d" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto">
+            <title id="f7b-t">shard 的连续分配与间隔分配</title>
+            <desc id="f7b-d">同样 12 个样本分 4 片：contiguous=True 时每片拿到连续的一段；contiguous=False 时按间隔轮流分配。</desc>
+            <rect x="0" y="0" width="800" height="300" fill="#ffffff"/>
+            <g font-family="system-ui, 'PingFang SC', sans-serif" font-size="12">
+              <text x="30" y="28" font-size="14" font-weight="700" fill="#4c1d95">contiguous=True：每片连续</text>
+              <rect x="30" y="42" width="54" height="34" rx="5" fill="#ede9fe" stroke="#8b5cf6"/><text x="57" y="64" text-anchor="middle">0</text><rect x="88" y="42" width="54" height="34" rx="5" fill="#ede9fe" stroke="#8b5cf6"/><text x="115" y="64" text-anchor="middle">1</text><rect x="146" y="42" width="54" height="34" rx="5" fill="#ede9fe" stroke="#8b5cf6"/><text x="173" y="64" text-anchor="middle">2</text>
+              <rect x="204" y="42" width="54" height="34" rx="5" fill="#ccfbf1" stroke="#14b8a6"/><text x="231" y="64" text-anchor="middle">3</text><rect x="262" y="42" width="54" height="34" rx="5" fill="#ccfbf1" stroke="#14b8a6"/><text x="289" y="64" text-anchor="middle">4</text><rect x="320" y="42" width="54" height="34" rx="5" fill="#ccfbf1" stroke="#14b8a6"/><text x="347" y="64" text-anchor="middle">5</text>
+              <rect x="378" y="42" width="54" height="34" rx="5" fill="#fef3c7" stroke="#f59e0b"/><text x="405" y="64" text-anchor="middle">6</text><rect x="436" y="42" width="54" height="34" rx="5" fill="#fef3c7" stroke="#f59e0b"/><text x="463" y="64" text-anchor="middle">7</text><rect x="494" y="42" width="54" height="34" rx="5" fill="#fef3c7" stroke="#f59e0b"/><text x="521" y="64" text-anchor="middle">8</text>
+              <rect x="552" y="42" width="54" height="34" rx="5" fill="#ffe4e6" stroke="#f43f5e"/><text x="579" y="64" text-anchor="middle">9</text><rect x="610" y="42" width="54" height="34" rx="5" fill="#ffe4e6" stroke="#f43f5e"/><text x="637" y="64" text-anchor="middle">10</text><rect x="668" y="42" width="54" height="34" rx="5" fill="#ffe4e6" stroke="#f43f5e"/><text x="695" y="64" text-anchor="middle">11</text>
+              <text x="88" y="92" text-anchor="middle" fill="#6d28d9">GPU0</text><text x="262" y="92" text-anchor="middle" fill="#0f766e">GPU1</text><text x="436" y="92" text-anchor="middle" fill="#92400e">GPU2</text><text x="610" y="92" text-anchor="middle" fill="#9f1239">GPU3</text>
+              <line x1="30" y1="118" x2="770" y2="118" stroke="#e2e8f0"/>
+              <text x="30" y="150" font-size="14" font-weight="700" fill="#0f766e">contiguous=False（默认）：按间隔轮流</text>
+              <rect x="30" y="164" width="54" height="34" rx="5" fill="#ede9fe" stroke="#8b5cf6"/><text x="57" y="186" text-anchor="middle">0</text><rect x="88" y="164" width="54" height="34" rx="5" fill="#ccfbf1" stroke="#14b8a6"/><text x="115" y="186" text-anchor="middle">1</text><rect x="146" y="164" width="54" height="34" rx="5" fill="#fef3c7" stroke="#f59e0b"/><text x="173" y="186" text-anchor="middle">2</text><rect x="204" y="164" width="54" height="34" rx="5" fill="#ffe4e6" stroke="#f43f5e"/><text x="231" y="186" text-anchor="middle">3</text>
+              <rect x="262" y="164" width="54" height="34" rx="5" fill="#ede9fe" stroke="#8b5cf6"/><text x="289" y="186" text-anchor="middle">4</text><rect x="320" y="164" width="54" height="34" rx="5" fill="#ccfbf1" stroke="#14b8a6"/><text x="347" y="186" text-anchor="middle">5</text><rect x="378" y="164" width="54" height="34" rx="5" fill="#fef3c7" stroke="#f59e0b"/><text x="405" y="186" text-anchor="middle">6</text><rect x="436" y="164" width="54" height="34" rx="5" fill="#ffe4e6" stroke="#f43f5e"/><text x="463" y="186" text-anchor="middle">7</text>
+              <rect x="494" y="164" width="54" height="34" rx="5" fill="#ede9fe" stroke="#8b5cf6"/><text x="521" y="186" text-anchor="middle">8</text><rect x="552" y="164" width="54" height="34" rx="5" fill="#ccfbf1" stroke="#14b8a6"/><text x="579" y="186" text-anchor="middle">9</text><rect x="610" y="164" width="54" height="34" rx="5" fill="#fef3c7" stroke="#f59e0b"/><text x="637" y="186" text-anchor="middle">10</text><rect x="668" y="164" width="54" height="34" rx="5" fill="#ffe4e6" stroke="#f43f5e"/><text x="695" y="186" text-anchor="middle">11</text>
+              <text x="30" y="232" fill="#64748b">同一份数据的两种分片方式：每片大小几乎相等，区别只在样本如何落到各个 GPU</text>
+              <text x="30" y="262" fill="#64748b">颜色区分不同 GPU（片），与样本顺序无关</text>
+            </g>
+          </svg>
+          <figcaption>图2：shard 把数据集切成 num_shards 片。contiguous 只影响样本如何落到各片：连续成块还是按 index 间隔轮流；片内 shuffle 后两者对训练基本等价。</figcaption>
+        </figure>
 
         <h3>shard 与 seed 的配合</h3>
 
@@ -332,6 +408,7 @@ print(result["len"])  # 快速获得一个近似的长度分布</code></pre>
         <div class="highlight">
             <strong>快速原型验证的技巧：</strong>在开发数据处理pipeline时，永远先用 <code>.take_every(k=100)</code> 或 <code>.select(range(100))</code> 在子集上测试。确认逻辑正确后，再在全量数据上运行。这个简单的习惯可以让你的开发效率提升5-10倍——因为大部分的bug在小数据集上就能暴露，而你不必每次都等待全量数据的处理时间。
         </div>
+        <p class="caveat">经验说明：“开发效率提升 5-10 倍”为示意性的经验说法，取决于数据规模与任务。</p>
 
         <h2>自定义Split策略</h2>
 
@@ -441,6 +518,7 @@ for fold, (train_idx, val_idx) in enumerate(gkf.split(dataset, groups=groups)):
         </div>
 
         <p>小刘后来在团队中推行了一个规则：所有的数据切分代码中，seed都写在一个全局配置文件中，而且一旦项目启动就不再修改。后续的所有实验都基于同一份切分数据。这个简单的规则让他们后续的竞赛成绩稳定了很多。</p>
+        <p class="caveat">案例说明：本 AUC 故事与 0.76/0.78/0.83/0.72 等数字为教学简化示例，用于说明 seed 与数据泄露的关系。</p>
 
         <pre><code># 正确的团队协作模式
 # config.py
@@ -465,12 +543,22 @@ VAL_SIZE = 0.1
 
         <p>掌握了切分和采样策略，你就拥有了"在正确的地方用正确的数据"的能力。下一章我们将进入datasets库最强大、最常用的操作 —— <code>map()</code> 数据处理核心函数，它是所有数据预处理流水线的引擎。</p>
 
+        <section class="refs" aria-labelledby="refs-h">
+          <h2 id="refs-h">参考来源</h2>
+          <ul>
+            <li>datasets 切分与采样文档：<a href="https://huggingface.co/docs/datasets/process">huggingface.co/docs/datasets/process</a>（train_test_split、select、shard、take、take_every）</li>
+            <li>datasets API 参考：<a href="https://huggingface.co/docs/datasets/package_reference/main_classes">huggingface.co/docs/datasets/package_reference/main_classes</a>（stratify_by_column、contiguous 参数语义）</li>
+            <li>scikit-learn GroupKFold：<a href="https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.GroupKFold.html">scikit-learn.org/…/GroupKFold</a>（分组交叉验证避免泄露）</li>
+          </ul>
+        </section>
+
         <div class="footer-nav">
             <a href="06.html">← 上一章</a>
             <a href="index.html">📖 返回目录</a>
             <a href="08.html">下一章 →</a>
         </div>
-    </div>
+    </article>
+    </main>
 </div>
 </div>
 </body>

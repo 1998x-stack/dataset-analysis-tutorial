@@ -5,11 +5,32 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes">
     <title>第8章 map() 数据处理核心</title>
     <link rel="stylesheet" href="theme.css">
+    <style>
+        .skip-link { position:absolute; left:-999px; top:0; z-index:100; background:#6d28d9; color:#fff; padding:10px 18px; border-radius:0 0 12px 0; text-decoration:none; font-weight:600; }
+        .skip-link:focus { left:0; }
+        .main-content h1 { color:#4c1d95; font-size:1.9rem; line-height:1.35; margin:0 0 6px; }
+        .dek { color:#53676d; font-size:1.02rem; line-height:1.7; margin:0 0 10px; }
+        figure { margin:26px 0; }
+        figure svg { width:100%; height:auto; display:block; }
+        figcaption { color:#4c1d95; font-size:0.92rem; line-height:1.7; margin-top:10px; padding-left:12px; border-left:4px solid #c4b5fd; }
+        .caveat { font-size:0.85rem; color:#7c5a10; background:#fef9c3; border-radius:10px; padding:8px 12px; margin:8px 0 14px; line-height:1.65; }
+        a:focus-visible { outline:3px solid #8b5cf6; outline-offset:2px; }
+        .table-wrap { overflow-x:auto; margin:15px 0; -webkit-overflow-scrolling:touch; }
+        .table-wrap table { margin:0; }
+        th, td { overflow-wrap:anywhere; }
+        pre { overflow-x:auto; max-width:100%; }
+        a { overflow-wrap:anywhere; }
+        .refs { background:#faf8ff; border:1px solid #c4b5fd; border-radius:16px; padding:14px 18px; margin:28px 0 0; }
+        .refs h2 { font-size:1.15rem; margin:0 0 8px; }
+        .refs li { line-height:1.7; }
+        @media (prefers-reduced-motion: reduce) { * { transition:none !important; animation:none !important; } }
+    </style>
 </head>
 <body>
+<a class="skip-link" href="#content">跳转至正文</a>
 <div class="double-border">
 <div class="container">
-    <div class="sidebar">
+    <nav class="sidebar" aria-label="课程目录">
         <h3>📊 课程目录</h3>
         <ul class="chapter-list">
             <li><a href="01.html">第1章 AI数据集全景图</a></li>
@@ -41,14 +62,17 @@
             <li><a href="27.html">第27章 前沿基准数据集巡览</a></li>
             <li><a href="28.html">第28章 综合实战项目</a></li>
         </ul>
-    </div>
-    <div class="main-content">
+    </nav>
+    <main id="content" class="main-content">
+    <article>
 
-        <h2>第8章：map() 数据处理核心</h2>
+        <h1>第8章：map() 数据处理核心</h1>
+        <p class="dek">map 是 datasets 最常用也最考验工程细节的变换：单条与批处理、多进程调度、指纹缓存，共同决定了数据管线的上限。</p>
 
         <p>如果说 <code>load_dataset()</code> 是 datasets 库的大门，那么 <code>map()</code> 就是这座房子里最常用的工具——没有之一。无论你要做文本分词、图像增强、特征工程还是数据清洗，95% 的情况下你都会用到 map。它就像数据管线的"瑞士军刀"，一把搞定几乎所有逐样本的数据变换。</p>
 
         <p>但瑞士军刀也有使用技巧：刀片钝了会割手，折叠工具用错了方向更会弄坏整个机构。map 看似简单——给一个函数，作用于每个样本——但它的参数设计、缓存机制、多进程调度背后隐藏着大量工程细节。用得好的团队，数据处理速度可以比用得差的团队快 50 倍。</p>
+        <p class="caveat">数值说明：“快 50 倍”为激励性的经验说法，不同函数与硬件下差异很大；请按教学示意理解。</p>
 
         <div class="highlight">
             <strong>核心认知：</strong>map 是 datasets 库的性能瓶颈集中地。你对 map 的理解深度，直接决定了数据管线的上限。花时间吃透这一章，后面所有章节都会更顺畅。
@@ -81,6 +105,7 @@ def map(
 
         <p>下面是 map 的内部执行流程：当调用 map 时，datasets 库会先检查缓存中是否存在对应的处理结果（基于 fingerprint）。如果命中缓存，直接跳过计算，零耗时返回。如果没有命中，会将原始数据按 Arrow 格式逐批取出，传递给用户定义的函数，将函数返回结果收集起来，写入新的 Arrow 文件，更新 fingerprint，最后返回新数据集。</p>
 
+        <div class="table-wrap" tabindex="0" role="region" aria-label="map 核心参数表（可横向滚动）">
         <table>
             <thead>
                 <tr>
@@ -123,6 +148,7 @@ def map(
                 </tr>
             </tbody>
         </table>
+        </div>
 
         <div class="tip">
             <strong>小技巧：</strong>在调试阶段设置 <code>load_from_cache_file=False</code>，避免缓存干扰调试结果。确认逻辑正确后再开启缓存享受加速。
@@ -159,6 +185,42 @@ result = data.map(add_length_batched, batched=True)
 
         <p>这两者之间性能差异巨大。特别是当函数内部涉及 GPU 操作（如调用 tokenizer 编码）或者矩阵计算时，批处理可以充分利用向量化加速。</p>
 
+        <figure>
+          <svg viewBox="0 0 800 340" role="img" aria-labelledby="f8a-t f8a-d" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto">
+            <title id="f8a-t">batched=False 与 batched=True 的调用方式</title>
+            <desc id="f8a-d">batched=False 时函数对每条样本各调用一次；batched=True 时整批样本合并为 dict of lists，函数只调用一次。</desc>
+            <defs><marker id="f8a-ar" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6 Z" fill="#6d28d9"/></marker></defs>
+            <rect x="0" y="0" width="800" height="340" fill="#ffffff"/>
+            <g font-family="system-ui, 'PingFang SC', sans-serif" font-size="13">
+              <text x="20" y="26" fill="#4c1d95" font-weight="700">batched=False：逐样本调用</text>
+              <rect x="20" y="42" width="120" height="30" rx="6" fill="#f5f3ff" stroke="#8b5cf6"/><text x="80" y="62" text-anchor="middle">样本 0</text>
+              <rect x="20" y="80" width="120" height="30" rx="6" fill="#f5f3ff" stroke="#8b5cf6"/><text x="80" y="100" text-anchor="middle">样本 1</text>
+              <rect x="20" y="118" width="120" height="30" rx="6" fill="#f5f3ff" stroke="#8b5cf6"/><text x="80" y="138" text-anchor="middle">样本 2</text>
+              <path d="M140 57 H214" stroke="#6d28d9" marker-end="url(#f8a-ar)"/>
+              <path d="M140 95 H214" stroke="#6d28d9" marker-end="url(#f8a-ar)"/>
+              <path d="M140 133 H214" stroke="#6d28d9" marker-end="url(#f8a-ar)"/>
+              <rect x="218" y="42" width="150" height="30" rx="6" fill="#ccfbf1" stroke="#14b8a6"/><text x="293" y="62" text-anchor="middle">f(example)</text>
+              <rect x="218" y="80" width="150" height="30" rx="6" fill="#ccfbf1" stroke="#14b8a6"/><text x="293" y="100" text-anchor="middle">f(example)</text>
+              <rect x="218" y="118" width="150" height="30" rx="6" fill="#ccfbf1" stroke="#14b8a6"/><text x="293" y="138" text-anchor="middle">f(example)</text>
+              <text x="400" y="95" fill="#64748b">函数调用 3 次，每次只处理一条</text>
+              <line x1="20" y1="170" x2="780" y2="170" stroke="#e2e8f0"/>
+              <text x="20" y="198" fill="#0f766e" font-weight="700">batched=True：整批调用</text>
+              <rect x="20" y="214" width="120" height="26" rx="6" fill="#f5f3ff" stroke="#8b5cf6"/><text x="80" y="232" text-anchor="middle">样本 0</text>
+              <rect x="20" y="244" width="120" height="26" rx="6" fill="#f5f3ff" stroke="#8b5cf6"/><text x="80" y="262" text-anchor="middle">样本 1</text>
+              <rect x="20" y="274" width="120" height="26" rx="6" fill="#f5f3ff" stroke="#8b5cf6"/><text x="80" y="292" text-anchor="middle">样本 2</text>
+              <path d="M140 227 H214" stroke="#6d28d9" marker-end="url(#f8a-ar)"/>
+              <path d="M140 257 H214" stroke="#6d28d9" marker-end="url(#f8a-ar)"/>
+              <path d="M140 287 H214" stroke="#6d28d9" marker-end="url(#f8a-ar)"/>
+              <rect x="218" y="214" width="200" height="86" rx="8" fill="#ccfbf1" stroke="#14b8a6"/>
+              <text x="318" y="248" text-anchor="middle">f(batch)</text>
+              <text x="318" y="272" text-anchor="middle" font-size="12">batch["text"] = [ … ]</text>
+              <text x="450" y="262" fill="#64748b">函数调用 1 次，整批向量化</text>
+            </g>
+          </svg>
+          <figcaption>图1：batched 参数改变的是函数的输入形状。False 是单个 dict、调用 N 次；True 是 dict of lists、调用 N/batch_size 次，后者才能吃到向量化与 GPU 批处理的红利。</figcaption>
+        </figure>
+
+        <div class="table-wrap" tabindex="0" role="region" aria-label="batched 开关对比表（可横向滚动）">
         <table>
             <thead>
                 <tr>
@@ -200,6 +262,7 @@ result = data.map(add_length_batched, batched=True)
                 </tr>
             </tbody>
         </table>
+        </div>
 
         <div class="warning">
             <strong>性能陷阱：</strong>很多人习惯在 batched=True 的 map 内写 for 循环逐样本处理，这样既没有享受到批处理的速度优势，还增加了内存开销。如果必须逐条处理，直接用 batched=False 更清晰。
@@ -239,6 +302,7 @@ result_8 = dataset.map(clean_text, num_proc=8)
 print(f"8进程: {time.time() - t0:.1f}s")</code></pre>
 
         <p>在我实测的 IMDB 训练集（25000 条）上，单进程耗时约 45 秒，8 进程约 8 秒——接近线性加速。但这不是免费的午餐。</p>
+        <p class="caveat">数值说明：以上 45s/8s 为特定机器上的教学测量，随 CPU、数据与函数复杂度变化，并非可复现的基准。</p>
 
         <h3>多进程的三大注意事项</h3>
 
@@ -278,6 +342,35 @@ dataset = dataset.map(io_intensive_func, num_proc=num_proc_io)</code></pre>
             <li>如果找到，<strong>直接加载缓存</strong>，跳过所有计算</li>
             <li>如果没找到，执行 map 并写入缓存</li>
         </ul>
+
+        <figure>
+          <svg viewBox="0 0 800 300" role="img" aria-labelledby="f8b-t f8b-d" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto">
+            <title id="f8b-t">map 的指纹缓存命中与失效</title>
+            <desc id="f8b-d">输入数据集的指纹与 map 参数（函数源码、batched 等）的指纹组合成 cache key；命中缓存则直接返回，未命中则执行并写入缓存。</desc>
+            <defs><marker id="f8b-ar" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6 Z" fill="#6d28d9"/></marker><marker id="f8b-ar2" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6 Z" fill="#14b8a6"/></marker><marker id="f8b-ar3" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6 Z" fill="#f59e0b"/></marker></defs>
+            <rect x="0" y="0" width="800" height="300" fill="#ffffff"/>
+            <g font-family="system-ui, 'PingFang SC', sans-serif" font-size="13">
+              <rect x="20" y="34" width="200" height="56" rx="10" fill="#f5f3ff" stroke="#8b5cf6"/>
+              <text x="120" y="58" text-anchor="middle">输入数据集</text><text x="120" y="78" text-anchor="middle" font-size="12">→ fingerprint F1</text>
+              <rect x="20" y="200" width="200" height="56" rx="10" fill="#f5f3ff" stroke="#8b5cf6"/>
+              <text x="120" y="224" text-anchor="middle">map 参数</text><text x="120" y="244" text-anchor="middle" font-size="12">函数源码/batched → F2</text>
+              <rect x="304" y="98" width="160" height="96" rx="10" fill="#ede9fe" stroke="#6d28d9"/>
+              <text x="384" y="132" text-anchor="middle">cache key</text><text x="384" y="156" text-anchor="middle">F1 ⊕ F2</text>
+              <path d="M220 62 H260 V120 H300" fill="none" stroke="#6d28d9" marker-end="url(#f8b-ar)"/>
+              <path d="M220 228 H260 V172 H300" fill="none" stroke="#6d28d9" marker-end="url(#f8b-ar)"/>
+              <path d="M464 146 H516" stroke="#6d28d9" marker-end="url(#f8b-ar)"/>
+              <rect x="518" y="112" width="120" height="68" rx="10" fill="#e0f2fe" stroke="#0ea5e9"/>
+              <text x="578" y="152" text-anchor="middle">查找缓存</text>
+              <path d="M638 130 L680 130 V62 H700" fill="none" stroke="#14b8a6" marker-end="url(#f8b-ar2)"/>
+              <rect x="702" y="34" width="80" height="56" rx="10" fill="#ccfbf1" stroke="#14b8a6"/>
+              <text x="742" y="58" text-anchor="middle" font-size="12">命中</text><text x="742" y="76" text-anchor="middle" font-size="12">直接返回</text>
+              <path d="M638 162 L680 162 V228 H700" fill="none" stroke="#f59e0b" marker-end="url(#f8b-ar3)"/>
+              <rect x="702" y="200" width="80" height="56" rx="10" fill="#fef3c7" stroke="#f59e0b"/>
+              <text x="742" y="224" text-anchor="middle" font-size="12">未命中</text><text x="742" y="242" text-anchor="middle" font-size="12">执行+写入</text>
+            </g>
+          </svg>
+          <figcaption>图2：缓存命中的前提是输入指纹与参数指纹都不变。修改函数一个字符、切换 batched，都会改变 cache key 而导致重新计算。</figcaption>
+        </figure>
 
         <pre><code>from datasets import load_dataset
 
@@ -391,7 +484,7 @@ print(f"最终列: {pipeline.column_names}")
 print(f"样本量: {len(pipeline)}")
 print(f"第一条: {pipeline[0]}")</code></pre>
 
-        <p>这个管线的设计理念是"单一职责"：每个 map 只做一件事，通过缓存机制保证修改任意步骤都不会影响其他步骤的结果。配合多进程加速，标处理 25000 条 IMDB 评论通常在十几秒内完成。</p>
+        <p>这个管线的设计理念是"单一职责"：每个 map 只做一件事，通过缓存机制保证修改任意步骤都不会影响其他步骤的结果。配合多进程加速，处理 25000 条 IMDB 评论通常在十几秒内完成。</p>
 
         <div class="highlight">
             <strong>设计原则：</strong>好的 map pipeline 应该是"声明式"的——你描述"做什么"而不是"怎么做"。每个 map 函数的名字清晰地说明它的目的，参数控制如何加速，缓存机制保证不重复劳动。这样的管线不仅跑得快，更关键的是<strong>别人能读懂</strong>。
@@ -399,12 +492,22 @@ print(f"第一条: {pipeline[0]}")</code></pre>
 
         <p>掌握了 map 之后，下一章我们要学习它的姊妹方法——<code>filter()</code>。如果说 map 是"变换"数据的瑞士军刀，那 filter 就是"筛选"数据的精密筛子。你将看到如何用 filter 从数据集中剔除低质量样本，以及过度筛选如何悄悄破坏你的数据分布。</p>
 
+        <section class="refs" aria-labelledby="refs-h">
+          <h2 id="refs-h">参考来源</h2>
+          <ul>
+            <li>datasets 处理文档：<a href="https://huggingface.co/docs/datasets/process">huggingface.co/docs/datasets/process</a>（map/filter、batched、batch_size、num_proc、remove_columns、with_indices）</li>
+            <li>datasets 缓存与指纹：<a href="https://huggingface.co/docs/datasets/about_cache">huggingface.co/docs/datasets/about_cache</a>（fingerprint、cache key、load_from_cache_file）</li>
+            <li>datasets 内存与多进程：<a href="https://huggingface.co/docs/datasets/use_with_pytorch">huggingface.co/docs/datasets/use_with_pytorch</a>（与训练框架集成时的批处理与多进程注意事项）</li>
+          </ul>
+        </section>
+
         <div class="footer-nav">
             <a href="07.html">← 上一章</a>
             <a href="index.html">📖 返回目录</a>
             <a href="09.html">下一章 →</a>
         </div>
-    </div>
+    </article>
+    </main>
 </div>
 </div>
 </body>

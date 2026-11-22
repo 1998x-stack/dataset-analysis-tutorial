@@ -5,11 +5,27 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes">
     <title>第1章 AI数据集全景图</title>
     <link rel="stylesheet" href="theme.css">
+    <style>
+        .skip-link { position:absolute; left:-999px; top:0; z-index:100; background:#6d28d9; color:#fff; padding:10px 18px; border-radius:0 0 12px 0; text-decoration:none; font-weight:600; }
+        .skip-link:focus { left:0; }
+        .main-content h1 { color:#4c1d95; font-size:1.9rem; line-height:1.35; margin:0 0 6px; }
+        .dek { color:#53676d; font-size:1.02rem; line-height:1.7; margin:0 0 10px; }
+        figure { margin:26px 0; }
+        figure svg { width:100%; height:auto; display:block; }
+        figcaption { color:#4c1d95; font-size:0.92rem; line-height:1.7; margin-top:10px; padding-left:12px; border-left:4px solid #c4b5fd; }
+        .caveat { font-size:0.85rem; color:#7c5a10; background:#fef9c3; border-radius:10px; padding:8px 12px; margin:8px 0 14px; line-height:1.65; }
+        a:focus-visible { outline:3px solid #8b5cf6; outline-offset:2px; }
+        .table-wrap { overflow-x:auto; margin:15px 0; -webkit-overflow-scrolling:touch; }
+        .table-wrap table { margin:0; }
+        th, td { overflow-wrap:anywhere; }
+        @media (prefers-reduced-motion: reduce) { * { transition:none !important; animation:none !important; } }
+    </style>
 </head>
 <body>
+<a class="skip-link" href="#content">跳转至正文</a>
 <div class="double-border">
 <div class="container">
-    <div class="sidebar">
+    <nav class="sidebar" aria-label="课程目录">
         <h3>📊 课程目录</h3>
         <ul class="chapter-list">
             <li><a href="01.html" class="active">第1章 AI数据集全景图</a></li>
@@ -41,14 +57,17 @@
             <li><a href="27.html">第27章 前沿基准数据集巡览</a></li>
             <li><a href="28.html">第28章 综合实战项目</a></li>
         </ul>
-    </div>
-    <div class="main-content">
+    </nav>
+    <main id="content" class="main-content">
+    <article>
 
-        <h2>第1章：AI数据集全景图</h2>
+        <h1>第1章：AI数据集全景图</h1>
+        <p class="dek">从数据集的来源、模态与三元分工，到 Hugging Face datasets 的技术栈与工程生命周期——建立数据工程的第一张全局地图。</p>
 
         <p>假如你是一个AI团队的负责人，手上有10个月的工期和5名工程师。你觉得最让人头疼的环节是什么？模型架构设计？训练框架选型？还是超参数调优？根据Google、Meta和国内大厂在2024-2026年间公开的经验数据，超过<strong>80%的AI工程时间</strong>花在了同一个地方——<strong>数据处理</strong>。不是设计Transformer，不是调学习率，而是围绕数据打转：找数据、清数据、标数据、转格式、切分、版本控制、质量审计……</p>
 
         <p>这个比例听起来惊人，但它确实反映了AI行业的一个核心现实：<strong>算法是商品，数据是护城河</strong>。同样的LLaMA架构，喂给不同质量和规模的数据，产出的模型能力可以天差地别。DeepSeek-V3之所以能用更少的GPU小时追上GPT-4级别的性能，数据策略是关键因素之一。</p>
+        <p class="caveat">数值说明：本段“80% 时间花在数据处理”等为业界常见经验性说法，未给出可核对的原始出处，请按教学示意理解；后续章节引用具体指标时均标注来源。</p>
 
         <div class="highlight">
             <strong>核心认知：</strong>数据工程不是模型训练的"前处理步骤"，它是AI项目的主体。如果你只能在一件事上投入精力，选数据——而非模型架构。
@@ -71,6 +90,32 @@
         <div class="warning">
             <strong>常见陷阱：</strong>很多人把验证集和测试集混为一谈，甚至在调参过程中反复使用测试集做决策。这会导致"测试集过拟合"——你的模型不是真的强，而是记住了考试答案。保持测试集的"纯洁性"是数据工程的基本原则。
         </div>
+
+        <figure>
+          <svg viewBox="0 0 800 260" role="img" aria-labelledby="fig1-t fig1-d" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto">
+            <title id="fig1-t">训练集、验证集、测试集的三元分工</title>
+            <desc id="fig1-d">同一份数据按比例切分为训练集（约80%）、验证集（约10%）与测试集（约10%），分别用于学习参数、选择模型与最终评估。</desc>
+            <rect x="0" y="0" width="800" height="260" fill="#ffffff"/>
+            <g font-family="system-ui, 'PingFang SC', sans-serif">
+              <rect x="20" y="30" width="608" height="46" rx="8" fill="#ede9fe" stroke="#8b5cf6" stroke-width="2"/>
+              <rect x="628" y="30" width="76" height="46" rx="8" fill="#ccfbf1" stroke="#14b8a6" stroke-width="2"/>
+              <rect x="704" y="30" width="76" height="46" rx="8" fill="#fef3c7" stroke="#f59e0b" stroke-width="2"/>
+              <text x="324" y="59" text-anchor="middle" font-size="15" font-weight="700" fill="#5b21b6">训练集 · 约 80%</text>
+              <text x="666" y="59" text-anchor="middle" font-size="13" font-weight="700" fill="#0f766e">验证</text>
+              <text x="742" y="59" text-anchor="middle" font-size="13" font-weight="700" fill="#92400e">测试</text>
+              <text x="324" y="104" text-anchor="middle" font-size="13" fill="#334155">学习参数：反复读取、梯度下降</text>
+              <text x="666" y="104" text-anchor="middle" font-size="13" fill="#334155">选择模型</text>
+              <text x="742" y="104" text-anchor="middle" font-size="13" fill="#334155">最终评估</text>
+              <line x1="666" y1="122" x2="666" y2="146" stroke="#94a3b8" stroke-width="2"/>
+              <line x1="742" y1="122" x2="742" y2="146" stroke="#94a3b8" stroke-width="2"/>
+              <text x="666" y="168" text-anchor="middle" font-size="12" fill="#64748b">每轮训练后</text>
+              <text x="742" y="168" text-anchor="middle" font-size="12" fill="#64748b">只用一次</text>
+              <rect x="20" y="188" width="760" height="46" rx="10" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.5"/>
+              <text x="400" y="217" text-anchor="middle" font-size="13" fill="#334155">切分必须发生在任何调参之前；测试集一旦用于决策，就退化为验证集</text>
+            </g>
+          </svg>
+          <figcaption>图1：切分的目的是让“学参数”和“选模型”使用互不重叠的数据。比例（80/10/10）为教学示意，实际项目随数据规模调整——数据极多时验证/测试占比可以更小。</figcaption>
+        </figure>
 
         <h3>数据集 vs 基准（Benchmark）</h3>
 
@@ -103,6 +148,7 @@ dataset = load_dataset("imdb")
 print(dataset["train"][0])  # 直接拿到第一条样本</code></pre>
 
         <p>截至2026年6月，datasets 库已经演进到 <strong>v5.0.0</strong> 版本，支持 <strong>467种语言</strong>，Hugging Face Hub 上托管了近 <strong>100万个社区数据集</strong>。它不只是个"数据集下载工具"，而是一个完整的数据工程框架，与 Transformers、Diffusers、TRL、timm 等主流库原生集成。</p>
+        <p class="caveat">版本与规模说明：版本号、语言数、社区数据集数量随时间变化；请以 Hugging Face 官方文档与 Hub 页面实时数据为准，本处数字仅作示意。</p>
 
         <div class="tip">
             <strong>小技巧：</strong>你可以用 <code>load_dataset(..., streaming=True)</code> 来流式加载超大数据集，避免把几百GB的数据一次性下载到本地。这在处理LAION-5B（58亿图文对）这样的巨无霸数据集时几乎是必备技巧。
@@ -124,6 +170,7 @@ print(dataset["train"][0])  # 直接拿到第一条样本</code></pre>
 
         <p>AI数据集不是少数几个知名Benchmark就能覆盖的。不同领域的数据形态、标注方式、加载接口差异极大。下表是当前各大领域最具代表性的数据集一览：</p>
 
+        <div class="table-wrap" tabindex="0" role="region" aria-label="全领域数据集一览表（可横向滚动）">
         <table>
             <thead>
                 <tr>
@@ -178,6 +225,7 @@ print(dataset["train"][0])  # 直接拿到第一条样本</code></pre>
                 </tr>
             </tbody>
         </table>
+        </div>
 
         <p>每一类数据集的加载方式、预处理策略、性能考量都完全不同。NLP数据集需要分词和编码，图像数据集需要归一化和数据增强，图结构数据集需要的则是邻接矩阵和子图采样。这就是为什么后续章节会分别深入每个领域。</p>
 
@@ -200,6 +248,32 @@ print(dataset["train"][0])  # 直接拿到第一条样本</code></pre>
             <li><strong>版本管理</strong>：数据集像代码一样需要版本控制。谁、在什么时候、做了什么修改、对模型效果产生了什么影响——这些信息必须可追溯。</li>
         </ol>
 
+        <figure>
+          <svg viewBox="0 0 800 300" role="img" aria-labelledby="fig2-t fig2-d" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto">
+            <title id="fig2-t">数据集工程生命周期</title>
+            <desc id="fig2-d">八个阶段：发现、加载、EDA、清洗、预处理、训练、评测调试、版本管理，并在评测不理想时回溯到 EDA。</desc>
+            <defs><marker id="ar2" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6 Z" fill="#8b5cf6"/></marker><marker id="ar3" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6 Z" fill="#d97706"/></marker></defs>
+            <rect x="0" y="0" width="800" height="300" fill="#ffffff"/>
+            <g font-family="system-ui, 'PingFang SC', sans-serif" font-size="14">
+              <rect x="20" y="36" width="170" height="54" rx="12" fill="#ede9fe" stroke="#8b5cf6"/><text x="105" y="70" text-anchor="middle" fill="#5b21b6">① 数据发现</text>
+              <rect x="210" y="36" width="170" height="54" rx="12" fill="#ede9fe" stroke="#8b5cf6"/><text x="295" y="70" text-anchor="middle" fill="#5b21b6">② 数据加载</text>
+              <rect x="400" y="36" width="170" height="54" rx="12" fill="#ede9fe" stroke="#8b5cf6"/><text x="485" y="70" text-anchor="middle" fill="#5b21b6">③ EDA 探索</text>
+              <rect x="590" y="36" width="170" height="54" rx="12" fill="#ede9fe" stroke="#8b5cf6"/><text x="675" y="70" text-anchor="middle" fill="#5b21b6">④ 数据清洗</text>
+              <text x="200" y="72" font-size="18" fill="#94a3b8">→</text><text x="390" y="72" font-size="18" fill="#94a3b8">→</text><text x="580" y="72" font-size="18" fill="#94a3b8">→</text>
+              <path d="M675 90 V160" stroke="#8b5cf6" stroke-width="2" marker-end="url(#ar2)"/>
+              <rect x="590" y="164" width="170" height="54" rx="12" fill="#ccfbf1" stroke="#14b8a6"/><text x="675" y="198" text-anchor="middle" fill="#0f766e">⑤ 预处理</text>
+              <rect x="400" y="164" width="170" height="54" rx="12" fill="#ccfbf1" stroke="#14b8a6"/><text x="485" y="198" text-anchor="middle" fill="#0f766e">⑥ 模型训练</text>
+              <rect x="210" y="164" width="170" height="54" rx="12" fill="#ccfbf1" stroke="#14b8a6"/><text x="295" y="198" text-anchor="middle" fill="#0f766e">⑦ 评测调试</text>
+              <rect x="20" y="164" width="170" height="54" rx="12" fill="#ccfbf1" stroke="#14b8a6"/><text x="105" y="198" text-anchor="middle" fill="#0f766e">⑧ 版本管理</text>
+              <text x="575" y="200" font-size="18" fill="#94a3b8">←</text><text x="365" y="200" font-size="18" fill="#94a3b8">←</text><text x="155" y="200" font-size="18" fill="#94a3b8">←</text>
+              <path d="M295 164 C 295 120, 470 122, 470 92" fill="none" stroke="#d97706" stroke-width="2" stroke-dasharray="6 4" marker-end="url(#ar3)"/>
+              <text x="360" y="128" font-size="12" fill="#b45309">评测不理想 → 回溯 EDA</text>
+              <text x="400" y="262" text-anchor="middle" font-size="12" fill="#64748b">流程不是一次性的：训练→评测→回溯→清洗→再训练会循环多轮</text>
+            </g>
+          </svg>
+          <figcaption>图2：数据集生命周期是一条带反馈闭环的流水线。版本管理不是终点，而是让每轮迭代的改动可追溯的基础。</figcaption>
+        </figure>
+
         <p>这套流程不是一次性的。在实际项目中，你会在"训练→评测→回溯→清洗→再训练"之间循环很多轮。一个模型从0到上线，数据集可能经历数十次迭代。</p>
 
         <div class="tip">
@@ -215,6 +289,7 @@ print(dataset["train"][0])  # 直接拿到第一条样本</code></pre>
         <p>然而第一次训练结束后，验证集准确率只有<strong>52%</strong>，和瞎猜差不多。团队排查了整整两周：模型架构没问题、超参数没问题、标注质量也没问题。最后发现问题出在数据上——训练数据是DICOM格式（16位灰度深度的医学影像），但团队在写预处理脚本时，有人顺手用了处理JPG的方式把像素截断到8位，关键的低对比度结节信息全丢了。</p>
 
         <p>更讽刺的是，那个"ImageNet预训练"在医学影像上非但没有帮助，反而因为自然图像和医学影像的分布差异太大，产生了负迁移。如果团队在动手训练前做过系统的数据EDA，他们会在第一小时就发现数据分布和模型假设之间的矛盾。</p>
+        <p class="caveat">案例说明：该医疗影像故事为教学简化示例，用于说明位深/数值范围不一致的后果，不代表某一具体团队的公开报告。</p>
 
         <div class="warning">
             <strong>血泪教训：</strong>不要假设你的数据和你"以为"的一样。你用的数据格式、编码方式、通道顺序、数值范围、缺失值标记——任何一项和模型的预期不符，都会导致数十个小时的无效调试。这些坑，在你系统学习数据分析和数据工程之后，大部分都可以提前规避。
@@ -223,6 +298,7 @@ print(dataset["train"][0])  # 直接拿到第一条样本</code></pre>
         <h3>好数据 > 好模型</h3>
 
         <p>这个公式不是口号，是被反复验证的经验法则。Google在2024年的一篇研究论文中做了对比实验：在保持模型架构不变的前提下，只优化数据质量（去重、过滤噪声、平衡标签分布），模型效果平均提升了<strong>15-25%</strong>；而反过来，在固定数据集的前提下去优化模型架构，提升幅度只有<strong>5-10%</strong>。数据投入的ROI几乎是模型投入的两倍。</p>
+        <p class="caveat">数值说明：“15-25% / 5-10%”两组提升幅度为教学示意，未附可核对的论文标题与链接，引用前请自行验证。</p>
 
         <div class="highlight">
             <strong>一句话总结：</strong>你可以用中等水平的模型配合高质量的数据打败用顶级模型配合糟糕数据的团队。数据质量的优先级永远高于模型架构的炫技。
@@ -247,7 +323,8 @@ print(dataset["train"][0])  # 直接拿到第一条样本</code></pre>
             <a href="index.html">📖 返回目录</a>
             <a href="02.html">下一章 →</a>
         </div>
-    </div>
+    </article>
+    </main>
 </div>
 </div>
 </body>

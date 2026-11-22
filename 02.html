@@ -5,11 +5,32 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes">
     <title>第2章 datasets库快速上手</title>
     <link rel="stylesheet" href="theme.css">
+    <style>
+        .skip-link { position:absolute; left:-999px; top:0; z-index:100; background:#6d28d9; color:#fff; padding:10px 18px; border-radius:0 0 12px 0; text-decoration:none; font-weight:600; }
+        .skip-link:focus { left:0; }
+        .main-content h1 { color:#4c1d95; font-size:1.9rem; line-height:1.35; margin:0 0 6px; }
+        .dek { color:#53676d; font-size:1.02rem; line-height:1.7; margin:0 0 10px; }
+        figure { margin:26px 0; }
+        figure svg { width:100%; height:auto; display:block; }
+        figcaption { color:#4c1d95; font-size:0.92rem; line-height:1.7; margin-top:10px; padding-left:12px; border-left:4px solid #c4b5fd; }
+        .caveat { font-size:0.85rem; color:#7c5a10; background:#fef9c3; border-radius:10px; padding:8px 12px; margin:8px 0 14px; line-height:1.65; }
+        a:focus-visible { outline:3px solid #8b5cf6; outline-offset:2px; }
+        .table-wrap { overflow-x:auto; margin:15px 0; -webkit-overflow-scrolling:touch; }
+        .table-wrap table { margin:0; }
+        th, td { overflow-wrap:anywhere; }
+        pre { overflow-x:auto; max-width:100%; }
+        a { overflow-wrap:anywhere; }
+        .refs { background:#faf8ff; border:1px solid #c4b5fd; border-radius:16px; padding:14px 18px; margin:28px 0 0; }
+        .refs h2 { font-size:1.15rem; margin:0 0 8px; }
+        .refs li { line-height:1.7; }
+        @media (prefers-reduced-motion: reduce) { * { transition:none !important; animation:none !important; } }
+    </style>
 </head>
 <body>
+<a class="skip-link" href="#content">跳转至正文</a>
 <div class="double-border">
 <div class="container">
-    <div class="sidebar">
+    <nav class="sidebar" aria-label="课程目录">
         <h3>📊 课程目录</h3>
         <ul class="chapter-list">
             <li><a href="01.html">第1章 AI数据集全景图</a></li>
@@ -41,10 +62,12 @@
             <li><a href="27.html">第27章 前沿基准数据集巡览</a></li>
             <li><a href="28.html">第28章 综合实战项目</a></li>
         </ul>
-    </div>
-    <div class="main-content">
+    </nav>
+    <main id="content" class="main-content">
+    <article>
 
-        <h2>第2章：datasets库快速上手</h2>
+        <h1>第2章：datasets库快速上手</h1>
+        <p class="dek">从安装、加载第一个数据集，到看懂 DatasetDict / Dataset 的结构与 split 表达式——用一条最短路径把 datasets 库跑起来。</p>
 
         <p>上一章我们俯瞰了AI数据集的全景图——从数据类型到生命周期，从Benchmark到数据工程的角色。现在该动手了。很多人学AI工具链时有一个通病：文档看了三天，一行代码没写。看完API文档再动手，结果忘了大半。我们换个方式——<strong>先跑通，再理解</strong>。</p>
 
@@ -114,6 +137,36 @@ print(dataset)</code></pre>
 })</code></pre>
 
         <p>这就是 <strong>DatasetDict</strong> 对象——一个包含多个 <strong>Dataset</strong> 对象（对应不同split）的字典。左侧是split名称（train / test / unsupervised），右侧是对应split的样本数和特征列。</p>
+
+        <figure>
+          <svg viewBox="0 0 800 300" role="img" aria-labelledby="f2a-t f2a-d" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto">
+            <title id="f2a-t">load_dataset 返回的 DatasetDict 结构</title>
+            <desc id="f2a-d">load_dataset(&quot;imdb&quot;) 返回 DatasetDict，其中按 split 存放多个 Dataset 对象；每个 Dataset 含 features 列定义与 num_rows 行数。</desc>
+            <defs><marker id="f2a-ar" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6 Z" fill="#8b5cf6"/></marker></defs>
+            <rect x="0" y="0" width="800" height="300" fill="#ffffff"/>
+            <g font-family="system-ui, 'PingFang SC', sans-serif" font-size="14">
+              <rect x="270" y="20" width="260" height="46" rx="12" fill="#f5f3ff" stroke="#8b5cf6" stroke-width="2"/>
+              <text x="400" y="49" text-anchor="middle" fill="#4c1d95" font-weight="700">load_dataset("imdb")</text>
+              <path d="M400 66 V86" stroke="#8b5cf6" stroke-width="2" marker-end="url(#f2a-ar)"/>
+              <rect x="270" y="92" width="260" height="46" rx="12" fill="#ede9fe" stroke="#6d28d9" stroke-width="2"/>
+              <text x="400" y="121" text-anchor="middle" fill="#5b21b6" font-weight="700">DatasetDict</text>
+              <path d="M400 138 V156 H150 V174" fill="none" stroke="#8b5cf6" stroke-width="2" marker-end="url(#f2a-ar)"/>
+              <path d="M400 138 V174" stroke="#8b5cf6" stroke-width="2" marker-end="url(#f2a-ar)"/>
+              <path d="M400 156 H650 V174" fill="none" stroke="#8b5cf6" stroke-width="2" marker-end="url(#f2a-ar)"/>
+              <rect x="40" y="178" width="220" height="66" rx="12" fill="#ccfbf1" stroke="#14b8a6" stroke-width="2"/>
+              <text x="150" y="204" text-anchor="middle" fill="#0f766e" font-weight="700">Dataset · train</text>
+              <text x="150" y="228" text-anchor="middle" font-size="12" fill="#115e59">num_rows = 25000</text>
+              <rect x="290" y="178" width="220" height="66" rx="12" fill="#ccfbf1" stroke="#14b8a6" stroke-width="2"/>
+              <text x="400" y="204" text-anchor="middle" fill="#0f766e" font-weight="700">Dataset · test</text>
+              <text x="400" y="228" text-anchor="middle" font-size="12" fill="#115e59">num_rows = 25000</text>
+              <rect x="540" y="178" width="220" height="66" rx="12" fill="#fef3c7" stroke="#f59e0b" stroke-width="2"/>
+              <text x="650" y="204" text-anchor="middle" fill="#92400e" font-weight="700">Dataset · unsupervised</text>
+              <text x="650" y="228" text-anchor="middle" font-size="12" fill="#78350f">num_rows = 50000</text>
+              <text x="400" y="276" text-anchor="middle" font-size="12" fill="#64748b">每个 Dataset 的 features 定义列名与类型；行数、列名由 num_rows / column_names 取得</text>
+            </g>
+          </svg>
+          <figcaption>图1：load_dataset 返回 DatasetDict，键是 split 名，值是该 split 的 Dataset。读结构时先看有哪些 split，再看每列的 features。</figcaption>
+        </figure>
 
         <div class="highlight">
             <strong>你知道吗？</strong>IMDb数据集还有第三个split——<code>unsupervised</code>，包含50000条无标签影评。很多初学者完全不知道这个split的存在，也就错过了半监督学习实验的机会。养成加载后先 <code>print(dataset)</code> 的好习惯，你可能会发现意外之喜。
@@ -219,6 +272,7 @@ for i, (text, label) in enumerate(zip(
 
         <h3>常见的split命名</h3>
 
+        <div class="table-wrap" tabindex="0" role="region" aria-label="常见 split 命名表（可横向滚动）">
         <table>
             <thead>
                 <tr>
@@ -267,6 +321,7 @@ for i, (text, label) in enumerate(zip(
                 </tr>
             </tbody>
         </table>
+        </div>
 
         <p>不是每个数据集都有validation split——IMDb就只有train和test。如果你需要从中切出一部分作为验证集，需要手动调用 <code>train_test_split</code> 方法（我们会在第7章详细讲）。</p>
 
@@ -293,6 +348,27 @@ print(len(dataset[0]))  # 12500
 print(len(dataset[1]))  # 12500</code></pre>
 
         <p><code>split</code> 参数支持非常灵活的表达式语法：<code>train[:50%]</code> 是训练集的前50%，<code>train[50%:]</code> 是后50%。这在快速原型验证时特别有用——你不需要加载整个数据集，只加载一个小切片就能测试pipeline。</p>
+
+        <figure>
+          <svg viewBox="0 0 800 240" role="img" aria-labelledby="f2b-t f2b-d" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto">
+            <title id="f2b-t">split 表达式按比例切片</title>
+            <desc id="f2b-d">split=&quot;train[:10%]&quot; 取训练集前 10%（2500 行），split=&quot;train[50%:]&quot; 取后 50%（12500 行），切片在加载时完成。</desc>
+            <rect x="0" y="0" width="800" height="240" fill="#ffffff"/>
+            <g font-family="system-ui, 'PingFang SC', sans-serif" font-size="13">
+              <text x="20" y="26" fill="#4c1d95" font-weight="700">完整 train（25000 行）</text>
+              <rect x="20" y="34" width="760" height="34" rx="6" fill="#ede9fe" stroke="#8b5cf6"/>
+              <text x="20" y="104" fill="#0f766e" font-weight="700">train[:10%] → 2500 行</text>
+              <rect x="20" y="112" width="76" height="34" rx="6" fill="#14b8a6"/>
+              <rect x="96" y="112" width="684" height="34" rx="6" fill="#f1f5f9" stroke="#cbd5e1" stroke-dasharray="5 4"/>
+              <text x="58" y="134" text-anchor="middle" font-size="11" fill="#ffffff">10%</text>
+              <text x="20" y="184" fill="#92400e" font-weight="700">train[50%:] → 12500 行</text>
+              <rect x="20" y="192" width="380" height="34" rx="6" fill="#f1f5f9" stroke="#cbd5e1" stroke-dasharray="5 4"/>
+              <rect x="400" y="192" width="380" height="34" rx="6" fill="#f59e0b"/>
+              <text x="590" y="214" text-anchor="middle" font-size="11" fill="#ffffff">50%</text>
+            </g>
+          </svg>
+          <figcaption>图2：split 表达式在加载阶段就完成切片。配合百分比切片，可以只加载一小块数据来验证 pipeline，而不必把整个数据集读进内存。</figcaption>
+        </figure>
 
         <h3>只有训练集怎么办</h3>
 
@@ -431,12 +507,23 @@ python your_script.py</code></pre>
 
         <p>你已经迈出了数据工程的第一步。这些操作看起来简单，但它们是所有后续高级功能的基础。第三章我们将深入数据集的"骨架"——特征（Features）系统，理解每一列背后的类型体系，以及如何定义复杂的嵌套数据结构。</p>
 
+        <section class="refs" aria-labelledby="refs-h">
+          <h2 id="refs-h">参考来源</h2>
+          <ul>
+            <li>Hugging Face <em>datasets</em> 官方文档：<a href="https://huggingface.co/docs/datasets">huggingface.co/docs/datasets</a>（安装、load_dataset、split 表达式语法）</li>
+            <li>IMDb 数据集卡片：<a href="https://huggingface.co/datasets/stanfordnlp/imdb">huggingface.co/datasets/stanfordnlp/imdb</a>（train/test/unsupervised 行数）</li>
+            <li>CIFAR-10 数据集卡片：<a href="https://huggingface.co/datasets/uoft-cs/cifar10">huggingface.co/datasets/uoft-cs/cifar10</a>（50000/10000 划分、32×32 RGB）</li>
+          </ul>
+          <p class="caveat" style="margin-top:10px;">本章代码块中的行数、版本号按 2026 年公开数据集卡片与文档示意，HF Hub 数据会更新，请以上述链接的实时内容为准；终端输出为教学示意，实际字段顺序可能不同。</p>
+        </section>
+
         <div class="footer-nav">
             <a href="01.html">← 上一章</a>
             <a href="index.html">📖 返回目录</a>
             <a href="03.html">下一章 →</a>
         </div>
-    </div>
+    </article>
+    </main>
 </div>
 </div>
 </body>

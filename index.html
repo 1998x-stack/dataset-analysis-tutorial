@@ -73,10 +73,23 @@
 
         .course-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(min(300px, 100%), 1fr));
             gap: 1.2rem;
-            margin: 1.8rem 0 1.2rem;
+            margin: 1.2rem 0 1.2rem;
         }
+
+        .skip-link {
+            position: absolute; left: -999px; top: 0; z-index: 100;
+            background: #2b7a4b; color: #fff; padding: 0.6rem 1.2rem;
+            border-radius: 0 0 12px 0; text-decoration: none; font-weight: 600;
+        }
+        .skip-link:focus { left: 0; }
+        a:focus-visible { outline: 3px solid #2b7a4b; outline-offset: 2px; border-radius: 6px; }
+
+        .hero-figure { margin: 1.2rem 0 0.4rem; }
+        .hero-figure svg { width: 100%; height: auto; display: block; }
+        .hero-figure figcaption { color: #3f6b4a; font-size: 0.9rem; margin-top: 0.6rem; line-height: 1.7; }
+        .section-title { font-size: 1.35rem; color: #1f4d33; margin: 1.4rem 0 0.2rem; }
 
         .card {
             background: #ffffff;
@@ -272,16 +285,68 @@
 </head>
 <body>
 <div class="container">
-    <div class="header">
+    <header class="header">
         <h1><span class="emoji"></span><span class="title-text"></span></h1>
         <div class="sub"></div>
-    </div>
+    </header>
 
+    <main id="content">
+    <h2 class="section-title" id="map">课程地图：五个阶段，28 章</h2>
+
+    <figure class="hero-figure">
+      <svg viewBox="0 0 800 240" role="img" aria-labelledby="map-title map-desc" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto">
+        <title id="map-title">课程地图：五个学习阶段的递进关系</title>
+        <desc id="map-desc">五个阶段从左到右递进：基础与后端（01-07）、核心处理（08-16）、质量与专项（17-22）、构建与趋势（23-25）、前沿与实战（26-28）。</desc>
+        <rect x="0" y="0" width="800" height="240" fill="#ffffff"/>
+        <g font-family="system-ui, 'PingFang SC', sans-serif">
+          <g>
+            <rect x="15" y="70" width="140" height="100" rx="14" fill="#ede9fe" stroke="#8b5cf6" stroke-width="2"/>
+            <text x="85" y="102" text-anchor="middle" font-size="15" font-weight="700" fill="#5b21b6">基础与后端</text>
+            <text x="85" y="128" text-anchor="middle" font-size="12" fill="#4c1d95">01–07 章</text>
+            <text x="85" y="150" text-anchor="middle" font-size="11" fill="#6d28d9">全景·Arrow·缓存</text>
+          </g>
+          <g>
+            <rect x="170" y="70" width="140" height="100" rx="14" fill="#ccfbf1" stroke="#14b8a6" stroke-width="2"/>
+            <text x="240" y="102" text-anchor="middle" font-size="15" font-weight="700" fill="#0f766e">核心处理</text>
+            <text x="240" y="128" text-anchor="middle" font-size="12" fill="#0f766e">08–16 章</text>
+            <text x="240" y="150" text-anchor="middle" font-size="11" fill="#115e59">map·流式·分片</text>
+          </g>
+          <g>
+            <rect x="325" y="70" width="140" height="100" rx="14" fill="#fef3c7" stroke="#f59e0b" stroke-width="2"/>
+            <text x="395" y="102" text-anchor="middle" font-size="15" font-weight="700" fill="#92400e">质量与专项</text>
+            <text x="395" y="128" text-anchor="middle" font-size="12" fill="#92400e">17–22 章</text>
+            <text x="395" y="150" text-anchor="middle" font-size="11" fill="#78350f">清洗·合规·领域集</text>
+          </g>
+          <g>
+            <rect x="480" y="70" width="140" height="100" rx="14" fill="#dbeafe" stroke="#3b82f6" stroke-width="2"/>
+            <text x="550" y="102" text-anchor="middle" font-size="15" font-weight="700" fill="#1e40af">构建与趋势</text>
+            <text x="550" y="128" text-anchor="middle" font-size="12" fill="#1e40af">23–25 章</text>
+            <text x="550" y="150" text-anchor="middle" font-size="11" fill="#1e3a8a">EDA·自建·管线</text>
+          </g>
+          <g>
+            <rect x="635" y="70" width="140" height="100" rx="14" fill="#ffe4e6" stroke="#f43f5e" stroke-width="2"/>
+            <text x="705" y="102" text-anchor="middle" font-size="15" font-weight="700" fill="#9f1239">前沿与实战</text>
+            <text x="705" y="128" text-anchor="middle" font-size="12" fill="#9f1239">26–28 章</text>
+            <text x="705" y="150" text-anchor="middle" font-size="11" fill="#881337">2026·基准·实战</text>
+          </g>
+          <text x="162" y="126" text-anchor="middle" font-size="18" fill="#94a3b8">→</text>
+          <text x="317" y="126" text-anchor="middle" font-size="18" fill="#94a3b8">→</text>
+          <text x="472" y="126" text-anchor="middle" font-size="18" fill="#94a3b8">→</text>
+          <text x="627" y="126" text-anchor="middle" font-size="18" fill="#94a3b8">→</text>
+        </g>
+      </svg>
+      <figcaption>课程按难度与依赖关系分五个阶段推进：先建立后端与加载认知，再掌握核心变换，随后补齐质量与领域知识，最后进入构建、前沿与端到端实战。</figcaption>
+    </figure>
+
+    <h2 class="section-title" id="chapters">章节列表</h2>
+    <nav aria-label="章节列表">
     <div id="cardContainer" class="course-grid"></div>
+    </nav>
 
     <div style="text-align:center;">
         <div class="footer"></div>
     </div>
+    </main>
 </div>
 
 <script>

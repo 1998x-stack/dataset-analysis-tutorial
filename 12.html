@@ -5,11 +5,32 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes">
     <title>第12章 流式处理与大数据策略</title>
     <link rel="stylesheet" href="theme.css">
+    <style>
+        .skip-link { position:absolute; left:-999px; top:0; z-index:100; background:#6d28d9; color:#fff; padding:10px 18px; border-radius:0 0 12px 0; text-decoration:none; font-weight:600; }
+        .skip-link:focus { left:0; }
+        .main-content h1 { color:#4c1d95; font-size:1.9rem; line-height:1.35; margin:0 0 6px; }
+        .dek { color:#53676d; font-size:1.02rem; line-height:1.7; margin:0 0 10px; }
+        figure { margin:26px 0; }
+        figure svg { width:100%; height:auto; display:block; }
+        figcaption { color:#4c1d95; font-size:0.92rem; line-height:1.7; margin-top:10px; padding-left:12px; border-left:4px solid #c4b5fd; }
+        .caveat { font-size:0.85rem; color:#7c5a10; background:#fef9c3; border-radius:10px; padding:8px 12px; margin:8px 0 14px; line-height:1.65; }
+        a:focus-visible { outline:3px solid #8b5cf6; outline-offset:2px; }
+        .table-wrap { overflow-x:auto; margin:15px 0; -webkit-overflow-scrolling:touch; }
+        .table-wrap table { margin:0; }
+        th, td { overflow-wrap:anywhere; }
+        pre { overflow-x:auto; max-width:100%; }
+        a { overflow-wrap:anywhere; }
+        .refs { background:#faf8ff; border:1px solid #c4b5fd; border-radius:16px; padding:14px 18px; margin:28px 0 0; }
+        .refs h2 { font-size:1.15rem; margin:0 0 8px; }
+        .refs li { line-height:1.7; }
+        @media (prefers-reduced-motion: reduce) { * { transition:none !important; animation:none !important; } }
+    </style>
 </head>
 <body>
+<a class="skip-link" href="#content">跳转至正文</a>
 <div class="double-border">
 <div class="container">
-    <div class="sidebar">
+    <nav class="sidebar" aria-label="课程目录">
         <h3>📊 课程目录</h3>
         <ul class="chapter-list">
             <li><a href="01.html">第1章 AI数据集全景图</a></li>
@@ -41,12 +62,15 @@
             <li><a href="27.html">第27章 前沿基准数据集巡览</a></li>
             <li><a href="28.html">第28章 综合实战项目</a></li>
         </ul>
-    </div>
-    <div class="main-content">
+    </nav>
+    <main id="content" class="main-content">
+    <article>
 
-        <h2>第12章：流式处理与大数据策略</h2>
+        <h1>第12章：流式处理与大数据策略</h1>
+        <p class="dek">当数据集大于内存，streaming=True 把“先下载再访问”换成“边下载边访问”。本章拆解 IterableDataset 的惰性语义、洗牌与内存控制。</p>
 
         <p>2024-2026 年间，AI 模型的参数量从千亿级跃升至万亿级，而训练数据量从 TB 级跃升至 PB 级。LAION-5B 有 58 亿图文对，FineWeb 有 15 万亿 token，RedPajama-V2 有 30 万亿 token——这些数字意味着什么？意味着没有任何一台机器的内存能装下它们。你必须学会在"不看全量数据"的情况下完成训练。</p>
+        <p class="caveat">数值说明：LAION-5B 58 亿图文对、FineWeb 15 万亿 token、RedPajama-V2 30 万亿 token 等规模数字引自各自数据集卡片，随版本更新会变化，请以官方数据集卡为准。</p>
 
         <p>这就是流式处理的用武之地。<code>streaming=True</code> 是 datasets 库中最重要的一个参数——它可能也是整个 Hugging Face 生态中最被低估的参数。有了它，你可以在 8GB 内存的笔记本上处理 TB 级的数据集；没有它，你可能连一个 50GB 的数据集都加载不了。</p>
 
@@ -78,6 +102,33 @@ for i, example in enumerate(dataset_stream):
 
         <p>流式模式返回的不是 Dataset，而是 <strong>IterableDataset</strong>。两者最大的区别在于：Dataset 支持随机访问（你可以问 "第 1000 条是什么？"），但 IterableDataset 不支持——它像 Python 的 generator，只能顺序迭代。你不能对它做 <code>dataset[1000]</code>，只能 <code>for example in dataset</code>。</p>
 
+        <figure>
+          <svg viewBox="0 0 800 300" role="img" aria-labelledby="f12a-t f12a-d" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto">
+            <title id="f12a-t">常规模式与流式模式的数据路径</title>
+            <desc id="f12a-d">常规模式把远端分片全部下载到本地缓存并加载进内存；流式模式只在迭代时按需拉取，仅保留当前 batch。</desc>
+            <defs><marker id="f12a-ar" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6 Z" fill="#6d28d9"/></marker></defs>
+            <rect x="0" y="0" width="800" height="300" fill="#ffffff"/>
+            <g font-family="system-ui, 'PingFang SC', sans-serif" font-size="13">
+              <text x="20" y="26" fill="#4c1d95" font-weight="700">常规模式：先下载再访问</text>
+              <rect x="20" y="38" width="180" height="52" rx="10" fill="#fef3c7" stroke="#f59e0b"/><text x="110" y="70" text-anchor="middle">远端分片</text>
+              <path d="M200 64 H274" stroke="#6d28d9" marker-end="url(#f12a-ar)"/><text x="237" y="56" text-anchor="middle" font-size="11" fill="#64748b">全部</text>
+              <rect x="276" y="38" width="180" height="52" rx="10" fill="#f5f3ff" stroke="#8b5cf6"/><text x="366" y="70" text-anchor="middle">本地磁盘缓存</text>
+              <path d="M456 64 H530" stroke="#6d28d9" marker-end="url(#f12a-ar)"/><text x="493" y="56" text-anchor="middle" font-size="11" fill="#64748b">加载</text>
+              <rect x="532" y="38" width="180" height="52" rx="10" fill="#ede9fe" stroke="#6d28d9"/><text x="622" y="70" text-anchor="middle">内存（全量）</text>
+              <line x1="20" y1="140" x2="780" y2="140" stroke="#e2e8f0"/>
+              <text x="20" y="172" fill="#0f766e" font-weight="700">流式模式：边下载边访问</text>
+              <rect x="20" y="184" width="180" height="52" rx="10" fill="#fef3c7" stroke="#f59e0b"/><text x="110" y="216" text-anchor="middle">远端分片</text>
+              <path d="M200 210 H274" stroke="#6d28d9" marker-end="url(#f12a-ar)"/><text x="237" y="202" text-anchor="middle" font-size="11" fill="#64748b">按需</text>
+              <rect x="276" y="184" width="180" height="52" rx="10" fill="#ccfbf1" stroke="#14b8a6"/><text x="366" y="216" text-anchor="middle">IterableDataset</text>
+              <path d="M456 210 H530" stroke="#6d28d9" marker-end="url(#f12a-ar)"/><text x="493" y="202" text-anchor="middle" font-size="11" fill="#64748b">产出</text>
+              <rect x="532" y="184" width="180" height="52" rx="10" fill="#ccfbf1" stroke="#14b8a6"/><text x="622" y="216" text-anchor="middle">当前 batch</text>
+              <text x="400" y="272" text-anchor="middle" font-size="12" fill="#64748b">同一份远端数据：常规模式落盘 100%，流式模式只保留当前需要的一小部分</text>
+            </g>
+          </svg>
+          <figcaption>图1：常规模式与流式模式走的是两条数据路径。前者以“全量落盘 + 全量入内存”为代价换取随机访问；后者放弃随机访问，换来“数据集大小不受内存限制”。</figcaption>
+        </figure>
+
+        <div class="table-wrap" tabindex="0" role="region" aria-label="Dataset 与 IterableDataset 对比表（可横向滚动）">
         <table>
             <thead>
                 <tr>
@@ -124,6 +175,7 @@ for i, example in enumerate(dataset_stream):
                 </tr>
             </tbody>
         </table>
+        </div>
 
         <div class="warning">
             <strong>踩坑故事：</strong>某团队接到了一个"多模态大模型训练"任务，核心训练数据是 LAION-5B——58 亿图文对，磁盘占用约 12TB。团队的实习生负责数据准备，他二话不说写了 <code>load_dataset("laion/laion5b")</code>（没加 streaming=True）。几个小时后，服务器磁盘满了，训练脚本报错。实习生以为是磁盘不够大，申请了更大的云盘——然后又爆了。最后一位资深工程师过来看了一眼，加了个 <code>streaming=True</code>，问题瞬间解决。那 12TB 数据根本不需要全部下载下来再训练——数据可以从 S3 上直接流式读取，每个 batch 用完即弃。多加了一个参数，省了 12TB 的磁盘和几个小时的无用等待。
@@ -136,6 +188,7 @@ for i, example in enumerate(dataset_stream):
         <h3>Xet 后端：100 倍加速</h3>
 
         <p>v5.0.0 引入了全新的 <strong>Xet</strong> 后端，这是 Hugging Face 自研的分布式数据存储引擎。相比传统的 Git LFS 后端，Xet 在流式场景下的数据读取速度提升了 100 倍。启用方式很简单：</p>
+        <p class="caveat">数值说明：“100 倍加速”为官方宣传口径下的理想场景倍数，实际提升取决于网络、数据类型与缓存命中，请按厂商声明理解。</p>
 
         <pre><code># datasets >= 5.0.0 默认启用 Xet 后端
 # 你也可以手动指定
@@ -241,6 +294,32 @@ mixed = interleave_datasets(
     probabilities=[0.7, 0.3],  # 70% C4, 30% FineWeb
     seed=42,
 )</code></pre>
+
+        <figure>
+          <svg viewBox="0 0 800 260" role="img" aria-labelledby="f12b-t f12b-d" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto">
+            <title id="f12b-t">interleave_datasets 混合多条流</title>
+            <desc id="f12b-d">两条流数据源按概率 0.7 与 0.3 交错，产出单一迭代流，不需先把任何一条完整下载。</desc>
+            <defs><marker id="f12b-ar" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6 Z" fill="#6d28d9"/></marker></defs>
+            <rect x="0" y="0" width="800" height="260" fill="#ffffff"/>
+            <g font-family="system-ui, 'PingFang SC', sans-serif" font-size="13">
+              <rect x="30" y="36" width="170" height="48" rx="10" fill="#fef3c7" stroke="#f59e0b"/><text x="115" y="65" text-anchor="middle">流 A · C4</text>
+              <rect x="30" y="164" width="170" height="48" rx="10" fill="#ccfbf1" stroke="#14b8a6"/><text x="115" y="193" text-anchor="middle">流 B · FineWeb</text>
+              <path d="M200 60 H260 V110 H288" fill="none" stroke="#6d28d9" marker-end="url(#f12b-ar)"/>
+              <path d="M200 188 H260 V142 H288" fill="none" stroke="#6d28d9" marker-end="url(#f12b-ar)"/>
+              <rect x="290" y="88" width="210" height="76" rx="12" fill="#ede9fe" stroke="#6d28d9"/>
+              <text x="395" y="118" text-anchor="middle">interleave_datasets</text>
+              <text x="395" y="142" text-anchor="middle" font-size="12">probabilities=[0.7, 0.3]</text>
+              <path d="M500 126 H540" stroke="#6d28d9" marker-end="url(#f12b-ar)"/>
+              <rect x="542" y="102" width="40" height="40" rx="6" fill="#fef3c7" stroke="#f59e0b"/><text x="562" y="128" text-anchor="middle">A</text>
+              <rect x="586" y="102" width="40" height="40" rx="6" fill="#fef3c7" stroke="#f59e0b"/><text x="606" y="128" text-anchor="middle">A</text>
+              <rect x="630" y="102" width="40" height="40" rx="6" fill="#ccfbf1" stroke="#14b8a6"/><text x="650" y="128" text-anchor="middle">B</text>
+              <rect x="674" y="102" width="40" height="40" rx="6" fill="#fef3c7" stroke="#f59e0b"/><text x="694" y="128" text-anchor="middle">A</text>
+              <rect x="718" y="102" width="40" height="40" rx="6" fill="#ccfbf1" stroke="#14b8a6"/><text x="738" y="128" text-anchor="middle">B</text>
+              <text x="650" y="186" text-anchor="middle" font-size="12" fill="#64748b">输出为单一迭代流，按概率交错</text>
+            </g>
+          </svg>
+          <figcaption>图2：interleave_datasets 在迭代时按概率从多条流中取数据，得到统一的训练流——数据配比（如 70% A + 30% B）只体现在采样比例上，无需先合并落盘。</figcaption>
+        </figure>
 
         <h2>内存优化策略</h2>
 
@@ -366,6 +445,7 @@ def train_on_stream(dataset, num_steps=1000, batch_size=16):
 # 性能基准：流式 vs 非流式
 </code></pre>
 
+        <div class="table-wrap" tabindex="0" role="region" aria-label="流式与非流式性能对比表（教学示意，可横向滚动）">
         <table>
             <thead>
                 <tr>
@@ -408,6 +488,8 @@ def train_on_stream(dataset, num_steps=1000, batch_size=16):
                 </tr>
             </tbody>
         </table>
+        </div>
+        <p class="caveat">数值说明：上表内存与速度数字为教学示意，随硬件、网络与数据而异，并非官方基准。</p>
 
         <div class="highlight">
             <strong>结论：</strong>当数据集可以放入内存时，流式和常规模式在训练速度上几乎没有差别。但当数据集超出内存时，流式模式是唯一的选择。与其等数据全量下载完再训练，不如在数据流到达的第一时间就开始训练。这个思路转换会让你在处理大数据集时的效率提升一个数量级。
@@ -415,12 +497,24 @@ def train_on_stream(dataset, num_steps=1000, batch_size=16):
 
         <p>流式处理让你能处理"一台机器放不下"的数据集。但当我们进入分布式训练场景时，你还需要额外解决"多个 GPU 怎么分数据"的问题——每个 GPU 都要看到不同的数据，但都不能加载全部数据。下一章的数据分片和分布式训练正好解决这个问题。</p>
 
+        <section class="refs" aria-labelledby="refs-h">
+          <h2 id="refs-h">参考来源</h2>
+          <ul>
+            <li>datasets 流式文档：<a href="https://huggingface.co/docs/datasets/stream">huggingface.co/docs/datasets/stream</a>（streaming=True、IterableDataset、take/skip/interleave）</li>
+            <li>datasets 洗牌与批处理：<a href="https://huggingface.co/docs/datasets/use_with_pytorch">huggingface.co/docs/datasets/use_with_pytorch</a>（流式 shuffle、buffer、与训练框架集成）</li>
+            <li>Hugging Face Xet 存储后端：<a href="https://huggingface.co/docs/hub/xet">huggingface.co/docs/hub/xet</a>（分布式存储与分块传输）</li>
+            <li>LAION-5B 数据集卡片：<a href="https://huggingface.co/datasets/laion/laion5B">huggingface.co/datasets/laion/laion5B</a>（图文对规模）</li>
+            <li>FineWeb 数据集卡片：<a href="https://huggingface.co/datasets/HuggingFaceFW/fineweb">huggingface.co/datasets/HuggingFaceFW/fineweb</a>（token 规模）</li>
+          </ul>
+        </section>
+
         <div class="footer-nav">
             <a href="11.html">← 上一章</a>
             <a href="index.html">📖 返回目录</a>
             <a href="13.html">下一章 →</a>
         </div>
-    </div>
+    </article>
+    </main>
 </div>
 </div>
 </body>

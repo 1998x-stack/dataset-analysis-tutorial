@@ -5,11 +5,32 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes">
     <title>第3章 数据集元信息与特征系统</title>
     <link rel="stylesheet" href="theme.css">
+    <style>
+        .skip-link { position:absolute; left:-999px; top:0; z-index:100; background:#6d28d9; color:#fff; padding:10px 18px; border-radius:0 0 12px 0; text-decoration:none; font-weight:600; }
+        .skip-link:focus { left:0; }
+        .main-content h1 { color:#4c1d95; font-size:1.9rem; line-height:1.35; margin:0 0 6px; }
+        .dek { color:#53676d; font-size:1.02rem; line-height:1.7; margin:0 0 10px; }
+        figure { margin:26px 0; }
+        figure svg { width:100%; height:auto; display:block; }
+        figcaption { color:#4c1d95; font-size:0.92rem; line-height:1.7; margin-top:10px; padding-left:12px; border-left:4px solid #c4b5fd; }
+        .caveat { font-size:0.85rem; color:#7c5a10; background:#fef9c3; border-radius:10px; padding:8px 12px; margin:8px 0 14px; line-height:1.65; }
+        a:focus-visible { outline:3px solid #8b5cf6; outline-offset:2px; }
+        .table-wrap { overflow-x:auto; margin:15px 0; -webkit-overflow-scrolling:touch; }
+        .table-wrap table { margin:0; }
+        th, td { overflow-wrap:anywhere; }
+        pre { overflow-x:auto; max-width:100%; }
+        a { overflow-wrap:anywhere; }
+        .refs { background:#faf8ff; border:1px solid #c4b5fd; border-radius:16px; padding:14px 18px; margin:28px 0 0; }
+        .refs h2 { font-size:1.15rem; margin:0 0 8px; }
+        .refs li { line-height:1.7; }
+        @media (prefers-reduced-motion: reduce) { * { transition:none !important; animation:none !important; } }
+    </style>
 </head>
 <body>
+<a class="skip-link" href="#content">跳转至正文</a>
 <div class="double-border">
 <div class="container">
-    <div class="sidebar">
+    <nav class="sidebar" aria-label="课程目录">
         <h3>📊 课程目录</h3>
         <ul class="chapter-list">
             <li><a href="01.html">第1章 AI数据集全景图</a></li>
@@ -41,10 +62,12 @@
             <li><a href="27.html">第27章 前沿基准数据集巡览</a></li>
             <li><a href="28.html">第28章 综合实战项目</a></li>
         </ul>
-    </div>
-    <div class="main-content">
+    </nav>
+    <main id="content" class="main-content">
+    <article>
 
-        <h2>第3章：数据集元信息与特征系统</h2>
+        <h1>第3章：数据集元信息与特征系统</h1>
+        <p class="dek">Features 是每一列的类型声明：从 Value 标量到 ClassLabel、Sequence、Array 与嵌套 schema，它决定了数据在 Arrow 中如何编码与访存。</p>
 
         <p>上一章我们加载了IMDb和CIFAR-10数据集，并且通过 <code>print(dataset)</code> 瞥见了 <code>features</code> 这个神秘属性。当时我们看到text列的类型是 <code>Value(dtype='string')</code>，label列是 <code>ClassLabel(names=['neg', 'pos'])</code>。但你有没有想过——这些类型信息是怎么来的？如果加载的数据里某一列看起来是整数但实际上是字符串，datasets会怎么处理？</p>
 
@@ -58,6 +81,7 @@
 
         <p>下表是datasets库中最核心的Feature类型一览：</p>
 
+        <div class="table-wrap" tabindex="0" role="region" aria-label="核心 Feature 类型表（可横向滚动）">
         <table>
             <thead>
                 <tr>
@@ -124,8 +148,37 @@
                 </tr>
             </tbody>
         </table>
+        </div>
 
         <p>每一种Feature都对应着一个Arrow数据类型。当你定义或查看一个数据集的features时，你实际上是在指定Arrow列的类型。让我们逐一深入。</p>
+
+        <figure>
+          <svg viewBox="0 0 800 320" role="img" aria-labelledby="f3a-t f3a-d" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto">
+            <title id="f3a-t">Features 类型体系</title>
+            <desc id="f3a-d">Features 由标量 Value(dtype) 与复合类型组成；复合类型包括 ClassLabel、Sequence、Array2D/3D、Image、Audio、Translation，分别映射到不同的 Arrow 类型。</desc>
+            <defs><marker id="f3-ar" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6 Z" fill="#8b5cf6"/></marker></defs>
+            <rect x="0" y="0" width="800" height="320" fill="#ffffff"/>
+            <g font-family="system-ui, 'PingFang SC', sans-serif" font-size="14">
+              <rect x="290" y="20" width="220" height="44" rx="12" fill="#ede9fe" stroke="#6d28d9" stroke-width="2"/>
+              <text x="400" y="48" text-anchor="middle" fill="#5b21b6" font-weight="700">Features（列 schema）</text>
+              <path d="M400 64 V88 H180 V104" fill="none" stroke="#8b5cf6" stroke-width="2" marker-end="url(#f3-ar)"/>
+              <path d="M400 64 V88 H620 V104" fill="none" stroke="#8b5cf6" stroke-width="2" marker-end="url(#f3-ar)"/>
+              <rect x="70" y="108" width="220" height="44" rx="12" fill="#ccfbf1" stroke="#14b8a6" stroke-width="2"/>
+              <text x="180" y="136" text-anchor="middle" fill="#0f766e" font-weight="700">标量 · Value(dtype)</text>
+              <text x="180" y="182" text-anchor="middle" font-size="13" fill="#334155">int8/16/32/64 · float16/32/64</text>
+              <text x="180" y="206" text-anchor="middle" font-size="13" fill="#334155">string · bool · binary</text>
+              <text x="180" y="230" text-anchor="middle" font-size="13" fill="#334155">timestamp[ns]</text>
+              <rect x="510" y="108" width="220" height="44" rx="12" fill="#fef3c7" stroke="#f59e0b" stroke-width="2"/>
+              <text x="620" y="136" text-anchor="middle" fill="#92400e" font-weight="700">复合类型</text>
+              <text x="620" y="182" text-anchor="middle" font-size="13" fill="#334155">ClassLabel 分类标签</text>
+              <text x="620" y="206" text-anchor="middle" font-size="13" fill="#334155">Sequence 变长列表</text>
+              <text x="620" y="230" text-anchor="middle" font-size="13" fill="#334155">Array2D/3D · Image</text>
+              <text x="620" y="254" text-anchor="middle" font-size="13" fill="#334155">Audio · Translation</text>
+              <text x="400" y="300" text-anchor="middle" font-size="12" fill="#64748b">嵌套 dict 可以任意组合上述类型，表达对话、多模态等复杂 schema</text>
+            </g>
+          </svg>
+          <figcaption>图1：Features 只有两大类——标量 Value 与复合类型，复合类型可相互嵌套；每一种最终都映射到一个 Arrow 数据类型。</figcaption>
+        </figure>
 
         <div class="highlight">
             <strong>核心原则：</strong>Features不仅是"元数据"，它还直接决定了数据在内存中的布局方式、序列化效率和框架兼容性。选择正确的Feature类型，和选择正确的数据库列类型一样重要。
@@ -139,6 +192,7 @@
 
         <p>datasets库支持的dtype与Arrow的类型系统一一对应：</p>
 
+        <div class="table-wrap" tabindex="0" role="region" aria-label="Value dtype 与 Arrow 类型对照表（可横向滚动）">
         <table>
             <thead>
                 <tr>
@@ -217,6 +271,7 @@
                 </tr>
             </tbody>
         </table>
+        </div>
 
         <h3>类型推断与检测</h3>
 
@@ -260,6 +315,31 @@ dataset["train"] = dataset["train"].cast(new_features)</code></pre>
 
         <p><code>ClassLabel</code> 是分类任务的标配Feature类型。它存储一个类别名称列表（names），并在内部维护 <strong>整数ID → 类别名称</strong> 和 <strong>类别名称 → 整数ID</strong> 的双向映射。</p>
 
+        <figure>
+          <svg viewBox="0 0 800 240" role="img" aria-labelledby="f3b-t f3b-d" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto">
+            <title id="f3b-t">ClassLabel 的名称与整数 ID 双向映射</title>
+            <desc id="f3b-d">ClassLabel 维护 names 列表：str2int 把类别名称转成整数 ID，int2str 把整数 ID 转回类别名称。</desc>
+            <defs><marker id="f3b-ar" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6 Z" fill="#14b8a6"/></marker><marker id="f3b-ar2" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6 Z" fill="#f59e0b"/></marker></defs>
+            <rect x="0" y="0" width="800" height="240" fill="#ffffff"/>
+            <g font-family="system-ui, 'PingFang SC', sans-serif" font-size="14">
+              <text x="170" y="30" text-anchor="middle" fill="#0f766e" font-weight="700">names（可读）</text>
+              <text x="630" y="30" text-anchor="middle" fill="#92400e" font-weight="700">id（整数）</text>
+              <rect x="60" y="46" width="220" height="40" rx="8" fill="#ccfbf1" stroke="#14b8a6"/><text x="170" y="72" text-anchor="middle" fill="#115e59">negative</text>
+              <rect x="60" y="96" width="220" height="40" rx="8" fill="#ccfbf1" stroke="#14b8a6"/><text x="170" y="122" text-anchor="middle" fill="#115e59">neutral</text>
+              <rect x="60" y="146" width="220" height="40" rx="8" fill="#ccfbf1" stroke="#14b8a6"/><text x="170" y="172" text-anchor="middle" fill="#115e59">positive</text>
+              <rect x="520" y="46" width="220" height="40" rx="8" fill="#fef3c7" stroke="#f59e0b"/><text x="630" y="72" text-anchor="middle" fill="#78350f">0</text>
+              <rect x="520" y="96" width="220" height="40" rx="8" fill="#fef3c7" stroke="#f59e0b"/><text x="630" y="122" text-anchor="middle" fill="#78350f">1</text>
+              <rect x="520" y="146" width="220" height="40" rx="8" fill="#fef3c7" stroke="#f59e0b"/><text x="630" y="172" text-anchor="middle" fill="#78350f">2</text>
+              <path d="M280 60 H514" stroke="#14b8a6" stroke-width="2" marker-end="url(#f3b-ar)"/>
+              <text x="400" y="52" text-anchor="middle" font-size="12" fill="#0f766e">str2int()</text>
+              <path d="M520 182 H286" stroke="#f59e0b" stroke-width="2" marker-end="url(#f3b-ar2)"/>
+              <text x="400" y="200" text-anchor="middle" font-size="12" fill="#b45309">int2str()</text>
+              <text x="400" y="228" text-anchor="middle" font-size="12" fill="#64748b">num_classes = len(names) = 3</text>
+            </g>
+          </svg>
+          <figcaption>图2：ClassLabel 用 names 列表同时定义两个方向的映射。存储时只存整数 ID，展示或分析时用 int2str 还原成可读名称。</figcaption>
+        </figure>
+
         <h3>定义与使用</h3>
 
         <pre><code>from datasets import ClassLabel
@@ -296,6 +376,8 @@ for label in train["label"]:
 
 print(label_counts)
 # {'not_equivalent': 2177, 'equivalent': 2751}</code></pre>
+
+        <p class="caveat">数值说明：上面 MRPC 的标签计数仅作教学示意，与 GLUE MRPC 官方 train split 的实际规模不一致；真实分布请以 HF 数据集卡片（glue/mrpc）为准。</p>
 
         <div class="tip">
             <strong>实用技巧：</strong>在数据探索阶段，用 <code>int2str</code> 把标签ID转为名称，可以让你的数据分析代码更具可读性。特别是在画混淆矩阵或做错误分析时，显示类别名称而不是数字会让结果一目了然。
@@ -499,12 +581,23 @@ dataset = load_dataset("csv", data_files="users.csv", features=correct_features)
 
         <p>掌握了Features，你就掌握了datasets库的"类型语言"。下一章我们将深入Features的物理实现——<strong>Apache Arrow</strong>，理解为什么列式存储能带来数量级的性能提升，以及如何在8GB内存的笔记本上处理百GB级别的数据集。</p>
 
+        <section class="refs" aria-labelledby="refs-h">
+          <h2 id="refs-h">参考来源</h2>
+          <ul>
+            <li>Hugging Face <em>datasets</em> 特征类型文档：<a href="https://huggingface.co/docs/datasets/about_dataset_features">huggingface.co/docs/datasets/about_dataset_features</a>（Value/ClassLabel/Sequence/Array/嵌套类型）</li>
+            <li>datasets API 参考：<a href="https://huggingface.co/docs/datasets/package_reference/main_classes">huggingface.co/docs/datasets/package_reference/main_classes</a>（ClassLabel 的 int2str/str2int、cast）</li>
+            <li>GLUE / MRPC 数据集卡片：<a href="https://huggingface.co/datasets/nyu-mll/glue">huggingface.co/datasets/nyu-mll/glue</a>（各 split 规模与标签定义）</li>
+            <li>Apache Arrow 类型系统：<a href="https://arrow.apache.org/docs/format/Columnar.html">arrow.apache.org/docs/format/Columnar.html</a>（Value dtype 对应的 Arrow 类型）</li>
+          </ul>
+        </section>
+
         <div class="footer-nav">
             <a href="02.html">← 上一章</a>
             <a href="index.html">📖 返回目录</a>
             <a href="04.html">下一章 →</a>
         </div>
-    </div>
+    </article>
+    </main>
 </div>
 </div>
 </body>

@@ -5,11 +5,28 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes">
     <title>第6章 数据集的下载与缓存机制</title>
     <link rel="stylesheet" href="theme.css">
+    <style>
+        .skip-link { position:absolute; left:-999px; top:0; z-index:100; background:#6d28d9; color:#fff; padding:10px 18px; border-radius:0 0 12px 0; text-decoration:none; font-weight:600; }
+        .skip-link:focus { left:0; }
+        .main-content h1 { color:#4c1d95; font-size:1.9rem; line-height:1.35; margin:0 0 6px; }
+        .dek { color:#53676d; font-size:1.02rem; line-height:1.7; margin:0 0 10px; }
+        figure { margin:26px 0; }
+        figure svg { width:100%; height:auto; display:block; }
+        figcaption { color:#4c1d95; font-size:0.92rem; line-height:1.7; margin-top:10px; padding-left:12px; border-left:4px solid #c4b5fd; }
+        .caveat { font-size:0.85rem; color:#7c5a10; background:#fef9c3; border-radius:10px; padding:8px 12px; margin:8px 0 14px; line-height:1.65; }
+        a:focus-visible { outline:3px solid #8b5cf6; outline-offset:2px; }
+        .table-wrap { overflow-x:auto; margin:15px 0; -webkit-overflow-scrolling:touch; }
+        pre { overflow-x:auto; max-width:100%; }
+        table { display:block; width:100%; overflow-x:auto; }
+        th, td { overflow-wrap:anywhere; }
+        @media (prefers-reduced-motion: reduce) { * { transition:none !important; animation:none !important; } }
+    </style>
 </head>
 <body>
+<a class="skip-link" href="#content">跳转至正文</a>
 <div class="double-border">
 <div class="container">
-    <div class="sidebar">
+    <nav class="sidebar" aria-label="课程目录">
         <h3>📊 课程目录</h3>
         <ul class="chapter-list">
             <li><a href="01.html">第1章 AI数据集全景图</a></li>
@@ -41,14 +58,52 @@
             <li><a href="27.html">第27章 前沿基准数据集巡览</a></li>
             <li><a href="28.html">第28章 综合实战项目</a></li>
         </ul>
-    </div>
-    <div class="main-content">
+    </nav>
+    <main id="content" class="main-content">
+    <article>
 
-        <h2>第6章：数据集的下载与缓存机制</h2>
+        <h1>第6章：数据集的下载与缓存机制</h1>
+        <p class="dek">load_dataset 一行代码背后的下载、Arrow 转换与缓存查找流程，以及缓存目录、download_mode 与离线访问的工程取舍。</p>
 
         <p>前面几章我们一直在用 <code>load_dataset("imdb")</code>，好像数据是凭空出现的一样。但你有没有想过——这一行代码背后究竟发生了什么？数据从哪来？下到哪里了？下次再加载同样的数据集，为什么这么快？</p>
 
         <p>理解datasets库的下载与缓存机制，不仅是"搞清楚数据存在哪"这么简单。它直接关系到磁盘空间管理、CI/CD流水线的效率、离线环境的可行性，以及私有数据的访问控制。特别是当你的项目从"单人实验"升级到"团队协作"甚至"生产部署"时，缓存管理的知识会变得至关重要。</p>
+
+        <figure>
+          <svg viewBox="0 0 800 340" role="img" aria-labelledby="fig6-t fig6-d" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto">
+            <title id="fig6-t">load_dataset 的缓存命中与下载转换流程</title>
+            <desc id="fig6-d">首次调用需从 Hub 下载原始文件、转换为 Arrow 并写入缓存；再次调用时直接命中 Arrow 缓存，无需网络。</desc>
+            <rect x="0" y="0" width="800" height="340" fill="#ffffff"/>
+            <g font-family="system-ui, 'PingFang SC', sans-serif">
+              <rect x="30" y="30" width="200" height="54" rx="10" fill="#ede9fe" stroke="#8b5cf6" stroke-width="2"/>
+              <text x="130" y="62" text-anchor="middle" font-size="14" font-weight="700" fill="#5b21b6">load_dataset("imdb")</text>
+              <text x="130" y="115" text-anchor="middle" font-size="13" fill="#334155">查缓存目录</text>
+              <line x1="130" y1="84" x2="130" y2="100" stroke="#94a3b8" stroke-width="2"/>
+              <path d="M126 100 L130 106 L134 100 Z" fill="#94a3b8"/>
+              <rect x="30" y="130" width="200" height="52" rx="10" fill="#f1f5f9" stroke="#94a3b8" stroke-width="1.5"/>
+              <text x="130" y="161" text-anchor="middle" font-size="12.5" fill="#334155">缓存命中？</text>
+              <rect x="330" y="130" width="200" height="52" rx="10" fill="#d1fae5" stroke="#10b981" stroke-width="2"/>
+              <text x="430" y="155" text-anchor="middle" font-size="12.5" font-weight="700" fill="#047857">命中 → 直接 mmap</text>
+              <text x="430" y="172" text-anchor="middle" font-size="11.5" fill="#334155">几乎瞬时，无网络</text>
+              <line x1="230" y1="156" x2="330" y2="156" stroke="#10b981" stroke-width="2"/>
+              <path d="M324 152 L330 156 L324 160 Z" fill="#10b981"/>
+              <text x="280" y="148" text-anchor="middle" font-size="11" fill="#047857">是</text>
+              <rect x="330" y="230" width="200" height="52" rx="10" fill="#fee2e2" stroke="#ef4444" stroke-width="2"/>
+              <text x="430" y="255" text-anchor="middle" font-size="12.5" font-weight="700" fill="#b91c1c">未命中 → 下载原始</text>
+              <text x="430" y="272" text-anchor="middle" font-size="11.5" fill="#334155">存到 downloads/</text>
+              <path d="M130 182 L130 256 L330 256" fill="none" stroke="#ef4444" stroke-width="2"/>
+              <path d="M324 252 L330 256 L324 260 Z" fill="#ef4444"/>
+              <text x="150" y="250" font-size="11" fill="#b91c1c">否</text>
+              <rect x="590" y="230" width="180" height="52" rx="10" fill="#fef3c7" stroke="#f59e0b" stroke-width="2"/>
+              <text x="680" y="255" text-anchor="middle" font-size="12.5" font-weight="700" fill="#92400e">转 Arrow → 写缓存</text>
+              <text x="680" y="272" text-anchor="middle" font-size="11.5" fill="#334155">下次即可命中</text>
+              <line x1="530" y1="256" x2="590" y2="256" stroke="#f59e0b" stroke-width="2"/>
+              <path d="M584 252 L590 256 L584 260 Z" fill="#f59e0b"/>
+              <text x="400" y="316" text-anchor="middle" font-size="12.5" fill="#64748b">缓存得能复用的前提：config + revision 与当前请求一致；否则会被视为未命中</text>
+            </g>
+          </svg>
+          <figcaption>图1：<code>load_dataset()</code> 的核心分支只在“缓存命中/未命中”。命中时读取本地 Arrow 缓存（内存映射），未命中才走“下载 → 预处理 → 写 Arrow”这整条链路——这也是第二次加载同一数据集能“瞬间完成”的原因。</figcaption>
+        </figure>
 
         <h2>缓存目录体系</h2>
 
@@ -468,7 +523,8 @@ docker run --rm \
             <a href="index.html">📖 返回目录</a>
             <a href="07.html">下一章 →</a>
         </div>
-    </div>
+    </article>
+    </main>
 </div>
 </div>
 </body>

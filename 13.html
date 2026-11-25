@@ -5,11 +5,28 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes">
     <title>第13章 数据分片与分布式训练</title>
     <link rel="stylesheet" href="theme.css">
+    <style>
+        .skip-link { position:absolute; left:-999px; top:0; z-index:100; background:#6d28d9; color:#fff; padding:10px 18px; border-radius:0 0 12px 0; text-decoration:none; font-weight:600; }
+        .skip-link:focus { left:0; }
+        .main-content h1 { color:#4c1d95; font-size:1.9rem; line-height:1.35; margin:0 0 6px; }
+        .dek { color:#53676d; font-size:1.02rem; line-height:1.7; margin:0 0 10px; }
+        figure { margin:26px 0; }
+        figure svg { width:100%; height:auto; display:block; }
+        figcaption { color:#4c1d95; font-size:0.92rem; line-height:1.7; margin-top:10px; padding-left:12px; border-left:4px solid #c4b5fd; }
+        .caveat { font-size:0.85rem; color:#7c5a10; background:#fef9c3; border-radius:10px; padding:8px 12px; margin:8px 0 14px; line-height:1.65; }
+        a:focus-visible { outline:3px solid #8b5cf6; outline-offset:2px; }
+        .table-wrap { overflow-x:auto; margin:15px 0; -webkit-overflow-scrolling:touch; }
+        pre { overflow-x:auto; max-width:100%; }
+        table { display:block; width:100%; overflow-x:auto; }
+        th, td { overflow-wrap:anywhere; }
+        @media (prefers-reduced-motion: reduce) { * { transition:none !important; animation:none !important; } }
+    </style>
 </head>
 <body>
+<a class="skip-link" href="#content">跳转至正文</a>
 <div class="double-border">
 <div class="container">
-    <div class="sidebar">
+    <nav class="sidebar" aria-label="课程目录">
         <h3>📊 课程目录</h3>
         <ul class="chapter-list">
             <li><a href="01.html">第1章 AI数据集全景图</a></li>
@@ -41,10 +58,12 @@
             <li><a href="27.html">第27章 前沿基准数据集巡览</a></li>
             <li><a href="28.html">第28章 综合实战项目</a></li>
         </ul>
-    </div>
-    <div class="main-content">
+    </nav>
+    <main id="content" class="main-content">
+    <article>
 
-        <h2>第13章：数据分片与分布式训练</h2>
+        <h1>第13章：数据分片与分布式训练</h1>
+        <p class="dek">让每个进程只看到自己那份数据：shard() 的连续/交替分片与 PyTorch DistributedSampler 的配合。</p>
 
         <p>你可能遇到过这种情况：买了 4 张 GPU 的机器，跑训练脚本时发现显存 OOM 了。排查半天发现是个"低级错误"——4 个进程各自加载了完整的训练数据。每个进程以为自己是"唯一"的，结果同一份数据被复制了 4 份，4 倍的冗余加载直接撑爆了显存。</p>
 
@@ -53,6 +72,48 @@
         <div class="highlight">
             <strong>核心认知：</strong>分布式训练的第一原则——每个进程只加载自己负责的那一块数据。全量加载 + 分布式训练 = 灾难。这个公式几乎每周都在某个团队的工单系统中被重新验证一次。
         </div>
+        <p class="caveat">数值说明：本章以 IMDb 训练集 25000 条、4 卡分为 6250/片 作为教学举例，用于说明比例关系；实际分片均分与余数处理以 datasets 库 <code>shard()</code> 的实际实现为准。</p>
+
+        <figure>
+          <svg viewBox="0 0 800 340" role="img" aria-labelledby="fig13-t fig13-d" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto">
+            <title id="fig13-t">shard() 的连续与交替两种分片方式</title>
+            <desc id="fig13-d">同一数据集按 num_shards=4 切分给 4 个进程；contiguous=True 时每个进程得到一段连续区间，contiguous=False 时样本在进程间交替分配，更利于均匀分布。</desc>
+            <rect x="0" y="0" width="800" height="340" fill="#ffffff"/>
+            <g font-family="system-ui, 'PingFang SC', sans-serif">
+              <text x="400" y="28" text-anchor="middle" font-size="14" font-weight="700" fill="#5b21b6">num_shards = 4，world_size = 4</text>
+              <text x="30" y="70" font-size="13" font-weight="700" fill="#334155">contiguous=True（连续）</text>
+              <g font-size="11.5" fill="#ffffff" text-anchor="middle">
+                <rect x="30" y="82" width="180" height="34" rx="6" fill="#7c3aed"/><text x="120" y="104">rank0: 0–6249</text>
+                <rect x="216" y="82" width="180" height="34" rx="6" fill="#0ea5e9"/><text x="306" y="104">rank1: 6250–12499</text>
+                <rect x="402" y="82" width="180" height="34" rx="6" fill="#14b8a6"/><text x="492" y="104">rank2: 12500–18749</text>
+                <rect x="588" y="82" width="180" height="34" rx="6" fill="#f59e0b"/><text x="678" y="104">rank3: 18750–24999</text>
+              </g>
+              <text x="30" y="150" font-size="11.5" fill="#64748b">若数据按类别有序，一段可能整段都是同一类别 → 分布偏</text>
+              <text x="30" y="200" font-size="13" font-weight="700" fill="#334155">contiguous=False（交替）</text>
+              <g font-size="11" fill="#ffffff" text-anchor="middle">
+                <rect x="30" y="212" width="45" height="30" rx="5" fill="#7c3aed"/><text x="52" y="232">r0</text>
+                <rect x="79" y="212" width="45" height="30" rx="5" fill="#0ea5e9"/><text x="101" y="232">r1</text>
+                <rect x="128" y="212" width="45" height="30" rx="5" fill="#14b8a6"/><text x="150" y="232">r2</text>
+                <rect x="177" y="212" width="45" height="30" rx="5" fill="#f59e0b"/><text x="199" y="232">r3</text>
+                <rect x="226" y="212" width="45" height="30" rx="5" fill="#7c3aed"/><text x="248" y="232">r0</text>
+                <rect x="275" y="212" width="45" height="30" rx="5" fill="#0ea5e9"/><text x="297" y="232">r1</text>
+                <rect x="324" y="212" width="45" height="30" rx="5" fill="#14b8a6"/><text x="346" y="232">r2</text>
+                <rect x="373" y="212" width="45" height="30" rx="5" fill="#f59e0b"/><text x="395" y="232">r3</text>
+                <rect x="422" y="212" width="45" height="30" rx="5" fill="#7c3aed"/><text x="444" y="232">r0</text>
+                <rect x="471" y="212" width="45" height="30" rx="5" fill="#0ea5e9"/><text x="493" y="232">r1</text>
+                <rect x="520" y="212" width="45" height="30" rx="5" fill="#14b8a6"/><text x="542" y="232">r2</text>
+                <rect x="569" y="212" width="45" height="30" rx="5" fill="#f59e0b"/><text x="591" y="232">r3</text>
+                <rect x="618" y="212" width="45" height="30" rx="5" fill="#7c3aed"/><text x="640" y="232">r0</text>
+                <rect x="667" y="212" width="45" height="30" rx="5" fill="#0ea5e9"/><text x="689" y="232">r1</text>
+                <rect x="716" y="212" width="45" height="30" rx="5" fill="#14b8a6"/><text x="738" y="232">r2</text>
+              </g>
+              <text x="30" y="280" font-size="11.5" fill="#64748b">按序轮流分配 → 每个进程都混合到各类别，分布更均匀</text>
+              <rect x="30" y="298" width="740" height="30" rx="8" fill="#fee2e2" stroke="#ef4444" stroke-width="1.5"/>
+              <text x="400" y="318" text-anchor="middle" font-size="12.5" fill="#b91c1c">反例：4 个进程各自加载全量数据 = 4 份冗余，梯度完全重复</text>
+            </g>
+          </svg>
+          <figcaption>图1：分片的关键不在“切了几份”，而在“怎么切”。<code>contiguous=False</code> 的交替分配让每个进程都覆盖到各类数据，避免某个 rank 只拿到单一分布；而分布式场景下每个进程必须只加载自己那一片。</figcaption>
+        </figure>
 
         <h2>分片基础：shard()</h2>
 
@@ -367,7 +428,8 @@ class DataModule(pl.LightningDataModule):
             <a href="index.html">📖 返回目录</a>
             <a href="14.html">下一章 →</a>
         </div>
-    </div>
+    </article>
+    </main>
 </div>
 </div>
 </body>

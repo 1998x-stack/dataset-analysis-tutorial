@@ -5,11 +5,28 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes">
     <title>第14章 数据版本管理与可复现性</title>
     <link rel="stylesheet" href="theme.css">
+    <style>
+        .skip-link { position:absolute; left:-999px; top:0; z-index:100; background:#6d28d9; color:#fff; padding:10px 18px; border-radius:0 0 12px 0; text-decoration:none; font-weight:600; }
+        .skip-link:focus { left:0; }
+        .main-content h1 { color:#4c1d95; font-size:1.9rem; line-height:1.35; margin:0 0 6px; }
+        .dek { color:#53676d; font-size:1.02rem; line-height:1.7; margin:0 0 10px; }
+        figure { margin:26px 0; }
+        figure svg { width:100%; height:auto; display:block; }
+        figcaption { color:#4c1d95; font-size:0.92rem; line-height:1.7; margin-top:10px; padding-left:12px; border-left:4px solid #c4b5fd; }
+        .caveat { font-size:0.85rem; color:#7c5a10; background:#fef9c3; border-radius:10px; padding:8px 12px; margin:8px 0 14px; line-height:1.65; }
+        a:focus-visible { outline:3px solid #8b5cf6; outline-offset:2px; }
+        .table-wrap { overflow-x:auto; margin:15px 0; -webkit-overflow-scrolling:touch; }
+        pre { overflow-x:auto; max-width:100%; }
+        table { display:block; width:100%; overflow-x:auto; }
+        th, td { overflow-wrap:anywhere; }
+        @media (prefers-reduced-motion: reduce) { * { transition:none !important; animation:none !important; } }
+    </style>
 </head>
 <body>
+<a class="skip-link" href="#content">跳转至正文</a>
 <div class="double-border">
 <div class="container">
-    <div class="sidebar">
+    <nav class="sidebar" aria-label="课程目录">
         <h3>📊 课程目录</h3>
         <ul class="chapter-list">
             <li><a href="01.html">第1章 AI数据集全景图</a></li>
@@ -41,10 +58,12 @@
             <li><a href="27.html">第27章 前沿基准数据集巡览</a></li>
             <li><a href="28.html">第28章 综合实战项目</a></li>
         </ul>
-    </div>
-    <div class="main-content">
+    </nav>
+    <main id="content" class="main-content">
+    <article>
 
-        <h2>第14章：数据版本管理与可复现性</h2>
+        <h1>第14章：数据版本管理与可复现性</h1>
+        <p class="dek">为什么“同名数据集不同版本”是复现失败的头号元凶，以及 revision、fingerprint 与 state_dict 如何把数据钉到可追溯的坐标上。</p>
 
         <p>想象一下这个场景：你的团队花了三个月训练了一个模型，在内部评测集上达到了 SOTA 性能。你兴高采烈地写了论文，提交到了顶会。几个月后，另一个团队尝试复现你的结果——但他们无论怎么跑，效果都差了一大截。不是代码的锅，不是超参数的锅，最后发现——<strong>他们用的数据和你用的数据不是同一个版本</strong>。你训练时数据集是 v1.2，但论文里只写了数据集名字，没写版本号。</p>
 
@@ -53,6 +72,36 @@
         <div class="highlight">
             <strong>核心认知：</strong>数据版本管理不是什么"锦上添花"的工程实践——它是 AI 项目复现性（Reproducibility）的基石。如果你的数据没有版本号，你的模型就没有真正的"版本"——你永远无法确切知道当前模型是在什么数据上训练出来的。
         </div>
+        <p class="caveat">数值说明：本段“超过 40% 的回退定位到数据”“5–20% 波动”与下文“96%/93%”均为业界经验性描述或叙事举例，未附可核对的原始统计出处，请按教学示意理解。</p>
+
+        <figure>
+          <svg viewBox="0 0 800 300" role="img" aria-labelledby="fig14-t fig14-d" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto">
+            <title id="fig14-t">可复现三元组：代码、数据版本与超参数</title>
+            <desc id="fig14-d">一次可复现的实验需要同时固定代码 commit、数据集 revision（或 fingerprint）与超参数配置；只固定代码而不能复现数据版本，结果仍无法重放。</desc>
+            <rect x="0" y="0" width="800" height="300" fill="#ffffff"/>
+            <g font-family="system-ui, 'PingFang SC', sans-serif">
+              <text x="400" y="32" text-anchor="middle" font-size="14" font-weight="700" fill="#5b21b6">可复现 = 三件事同时可追溯</text>
+              <rect x="40" y="64" width="200" height="120" rx="12" fill="#ede9fe" stroke="#8b5cf6" stroke-width="2"/>
+              <text x="140" y="96" text-anchor="middle" font-size="14" font-weight="700" fill="#5b21b6">代码</text>
+              <text x="140" y="122" text-anchor="middle" font-size="12" fill="#334155">git commit hash</text>
+              <text x="140" y="146" text-anchor="middle" font-size="12" fill="#334155">预处理脚本版本</text>
+              <rect x="300" y="64" width="200" height="120" rx="12" fill="#ccfbf1" stroke="#14b8a6" stroke-width="2"/>
+              <text x="400" y="96" text-anchor="middle" font-size="14" font-weight="700" fill="#0f766e">数据</text>
+              <text x="400" y="122" text-anchor="middle" font-size="12" fill="#334155">revision / snapshot</text>
+              <text x="400" y="146" text-anchor="middle" font-size="12" fill="#334155">fingerprint / state_dict</text>
+              <rect x="560" y="64" width="200" height="120" rx="12" fill="#fef3c7" stroke="#f59e0b" stroke-width="2"/>
+              <text x="660" y="96" text-anchor="middle" font-size="14" font-weight="700" fill="#92400e">超参数</text>
+              <text x="660" y="122" text-anchor="middle" font-size="12" fill="#334155">config / seed</text>
+              <text x="660" y="146" text-anchor="middle" font-size="12" fill="#334155">训练配置</text>
+              <line x1="240" y1="124" x2="300" y2="124" stroke="#94a3b8" stroke-width="2"/>
+              <line x1="500" y1="124" x2="560" y2="124" stroke="#94a3b8" stroke-width="2"/>
+              <rect x="40" y="212" width="720" height="56" rx="10" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.5"/>
+              <text x="400" y="238" text-anchor="middle" font-size="12.5" fill="#334155">常见误区：只固定代码与超参，“数据”一栏只写数据集名。</text>
+              <text x="400" y="258" text-anchor="middle" font-size="12.5" fill="#b91c1c">→ 数据集在阅后更新，你的结论就无法重放</text>
+            </g>
+          </svg>
+          <figcaption>图1：<code>load_dataset</code> 默认拉取最新版本，因此论文/报告中必须同时记录代码 commit、数据 revision（或 fingerprint）与超参配置。三者缺一时，任何“复现失败”都无从归因。</figcaption>
+        </figure>
 
         <h2>为什么数据需要版本控制</h2>
 
@@ -498,7 +547,8 @@ dataset = load_dataset(
             <a href="index.html">📖 返回目录</a>
             <a href="15.html">下一章 →</a>
         </div>
-    </div>
+    </article>
+    </main>
 </div>
 </div>
 </body>

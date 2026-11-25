@@ -5,11 +5,28 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes">
     <title>第9章 filter() 与数据筛选</title>
     <link rel="stylesheet" href="theme.css">
+    <style>
+        .skip-link { position:absolute; left:-999px; top:0; z-index:100; background:#6d28d9; color:#fff; padding:10px 18px; border-radius:0 0 12px 0; text-decoration:none; font-weight:600; }
+        .skip-link:focus { left:0; }
+        .main-content h1 { color:#4c1d95; font-size:1.9rem; line-height:1.35; margin:0 0 6px; }
+        .dek { color:#53676d; font-size:1.02rem; line-height:1.7; margin:0 0 10px; }
+        figure { margin:26px 0; }
+        figure svg { width:100%; height:auto; display:block; }
+        figcaption { color:#4c1d95; font-size:0.92rem; line-height:1.7; margin-top:10px; padding-left:12px; border-left:4px solid #c4b5fd; }
+        .caveat { font-size:0.85rem; color:#7c5a10; background:#fef9c3; border-radius:10px; padding:8px 12px; margin:8px 0 14px; line-height:1.65; }
+        a:focus-visible { outline:3px solid #8b5cf6; outline-offset:2px; }
+        .table-wrap { overflow-x:auto; margin:15px 0; -webkit-overflow-scrolling:touch; }
+        pre { overflow-x:auto; max-width:100%; }
+        table { display:block; width:100%; overflow-x:auto; }
+        th, td { overflow-wrap:anywhere; }
+        @media (prefers-reduced-motion: reduce) { * { transition:none !important; animation:none !important; } }
+    </style>
 </head>
 <body>
+<a class="skip-link" href="#content">跳转至正文</a>
 <div class="double-border">
 <div class="container">
-    <div class="sidebar">
+    <nav class="sidebar" aria-label="课程目录">
         <h3>📊 课程目录</h3>
         <ul class="chapter-list">
             <li><a href="01.html">第1章 AI数据集全景图</a></li>
@@ -41,10 +58,12 @@
             <li><a href="27.html">第27章 前沿基准数据集巡览</a></li>
             <li><a href="28.html">第28章 综合实战项目</a></li>
         </ul>
-    </div>
-    <div class="main-content">
+    </nav>
+    <main id="content" class="main-content">
+    <article>
 
-        <h2>第9章：filter() 与数据筛选</h2>
+        <h1>第9章：filter() 与数据筛选</h1>
+        <p class="dek">filter 如何用布尔谓词重新定义数据分布，以及组合条件、两步法与 num_proc 的工程用法。</p>
 
         <p>做数据和淘金很像：你挖到的矿石（原始数据）通常含金量很低，需要用水流冲洗掉大量泥沙，才能得到闪闪发光的金粒。<code>filter()</code> 就是你的淘金筛子——它让你保留想要的，剔除不想要的。</p>
 
@@ -53,6 +72,37 @@
         <div class="highlight">
             <strong>核心认知：</strong>filter 不只是"扔掉坏数据"，它本质上是在重新定义你的数据分布。每次调用 filter，你都应该问自己：被扔掉的那部分数据和保留的部分，在分布上有什么系统性的差异？这个差异会不会影响模型的泛化能力？
         </div>
+
+        <figure>
+          <svg viewBox="0 0 800 300" role="img" aria-labelledby="fig9-t fig9-d" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto">
+            <title id="fig9-t">filter() 的保留与丢弃分流及其分布影响</title>
+            <desc id="fig9-d">每个样本送入返回布尔值的谓词函数，True 的样本保留、False 的丢弃；丢弃部分若与保留部分系统性不同，就会引入分布偏移。</desc>
+            <rect x="0" y="0" width="800" height="300" fill="#ffffff"/>
+            <g font-family="system-ui, 'PingFang SC', sans-serif">
+              <rect x="30" y="40" width="150" height="60" rx="10" fill="#ede9fe" stroke="#8b5cf6" stroke-width="2"/>
+              <text x="105" y="68" text-anchor="middle" font-size="13.5" font-weight="700" fill="#5b21b6">原始 Dataset</text>
+              <text x="105" y="87" text-anchor="middle" font-size="11.5" fill="#334155">逐样本送入谓词</text>
+              <rect x="250" y="40" width="170" height="60" rx="10" fill="#f1f5f9" stroke="#94a3b8" stroke-width="1.5"/>
+              <text x="335" y="66" text-anchor="middle" font-size="13" font-weight="700" fill="#334155">function(x) → bool</text>
+              <text x="335" y="85" text-anchor="middle" font-size="11.5" fill="#64748b">如 label==1 / len&gt;500</text>
+              <line x1="180" y1="70" x2="250" y2="70" stroke="#94a3b8" stroke-width="2"/>
+              <path d="M244 66 L250 70 L244 74 Z" fill="#94a3b8"/>
+              <rect x="500" y="16" width="270" height="52" rx="10" fill="#d1fae5" stroke="#10b981" stroke-width="2"/>
+              <text x="635" y="39" text-anchor="middle" font-size="13" font-weight="700" fill="#047857">保留：True 子集</text>
+              <text x="635" y="58" text-anchor="middle" font-size="11.5" fill="#334155">进入后续 map / 训练</text>
+              <rect x="500" y="80" width="270" height="52" rx="10" fill="#fee2e2" stroke="#ef4444" stroke-width="2"/>
+              <text x="635" y="103" text-anchor="middle" font-size="13" font-weight="700" fill="#b91c1c">丢弃：False 子集</text>
+              <text x="635" y="122" text-anchor="middle" font-size="11.5" fill="#334155">你放弃了这一部分分布</text>
+              <line x1="420" y1="60" x2="500" y2="42" stroke="#10b981" stroke-width="2"/>
+              <line x1="420" y1="80" x2="500" y2="106" stroke="#ef4444" stroke-width="2"/>
+              <rect x="30" y="180" width="740" height="86" rx="12" fill="#fffbeb" stroke="#f59e0b" stroke-width="1.5"/>
+              <text x="400" y="210" text-anchor="middle" font-size="13" font-weight="700" fill="#92400e">提醒：filter = 重新定义数据分布</text>
+              <text x="400" y="234" text-anchor="middle" font-size="12.5" fill="#334155">若“被丢弃”的样本在类别/长度/来源上与保留样本系统性不同，模型就会学到有偏的规律</text>
+              <text x="400" y="254" text-anchor="middle" font-size="12" fill="#64748b">实践：筛选前后各统计一次分布，确认差异在可接受范围内</text>
+            </g>
+          </svg>
+          <figcaption>图1：<code>filter()</code> 是一道把样本分成“保留/丢弃”两支的阀门。它的副作用不是删了几行，而是改变了剩余数据的分布——因此筛选前后各看一次分布，是数据质量的最低要求。</figcaption>
+        </figure>
 
         <h2>filter() 方法基础</h2>
 
@@ -377,7 +427,8 @@ class FilterLogger:
             <a href="index.html">📖 返回目录</a>
             <a href="10.html">下一章 →</a>
         </div>
-    </div>
+    </article>
+    </main>
 </div>
 </div>
 </body>

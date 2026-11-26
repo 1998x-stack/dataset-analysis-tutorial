@@ -5,11 +5,28 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes">
     <title>第21章 语音与多模态数据集</title>
     <link rel="stylesheet" href="theme.css">
+    <style>
+        .skip-link { position:absolute; left:-999px; top:0; z-index:100; background:#6d28d9; color:#fff; padding:10px 18px; border-radius:0 0 12px 0; text-decoration:none; font-weight:600; }
+        .skip-link:focus { left:0; }
+        .main-content h1 { color:#4c1d95; font-size:1.9rem; line-height:1.35; margin:0 0 6px; }
+        .dek { color:#53676d; font-size:1.02rem; line-height:1.7; margin:0 0 10px; }
+        figure { margin:26px 0; }
+        figure svg { width:100%; height:auto; display:block; }
+        figcaption { color:#4c1d95; font-size:0.92rem; line-height:1.7; margin-top:10px; padding-left:12px; border-left:4px solid #c4b5fd; }
+        .caveat { font-size:0.85rem; color:#7c5a10; background:#fef9c3; border-radius:10px; padding:8px 12px; margin:8px 0 14px; line-height:1.65; }
+        a:focus-visible { outline:3px solid #8b5cf6; outline-offset:2px; }
+        .table-wrap { overflow-x:auto; margin:15px 0; -webkit-overflow-scrolling:touch; }
+        pre { overflow-x:auto; max-width:100%; }
+        table { display:block; width:100%; overflow-x:auto; }
+        th, td { overflow-wrap:anywhere; }
+        @media (prefers-reduced-motion: reduce) { * { transition:none !important; animation:none !important; } }
+    </style>
 </head>
 <body>
+<a class="skip-link" href="#content">跳转至正文</a>
 <div class="double-border">
 <div class="container">
-    <div class="sidebar">
+    <nav class="sidebar" aria-label="课程目录">
         <h3>📊 课程目录</h3>
         <ul class="chapter-list">
             <li><a href="01.html">第1章 AI数据集全景图</a></li>
@@ -41,10 +58,12 @@
             <li><a href="27.html">第27章 前沿基准数据集巡览</a></li>
             <li><a href="28.html">第28章 综合实战项目</a></li>
         </ul>
-    </div>
-    <div class="main-content">
+    </nav>
+    <main id="content" class="main-content">
+    <article>
 
-        <h2>第21章：语音与多模态数据集</h2>
+        <h1>第21章：语音与多模态数据集</h1>
+        <p class="dek">五种模态各有自己的数据单位与对齐参数：采样率、帧率、模态对齐不定，管线就会崩。</p>
 
         <p>想象这样一个场景：你的模型需要同时理解一段视频中的<strong>语音内容</strong>、<strong>画面中的物体</strong>、<strong>背景音效</strong>和<strong>字幕文字</strong>，然后回答一个关于这段视频的问题。每一个"模态"都有自己的数据格式、采样率、编码方式，而你需要把它们对齐到同一个时间轴上。这就是多模态AI的日常——也是为什么多模态数据工程比单一模态复杂一个数量级。</p>
 
@@ -53,6 +72,36 @@
         <div class="highlight">
             <strong>核心认知：</strong>语音和多模态数据的"加载"不是load_dataset就结束了。你还得处理音频重采样、视频帧提取、模态对齐、特征提取等一系列工程问题。数据的规模从GB级（语音）到TB级（视频）不等，streaming不是选项而是必需品。
         </div>
+
+        <figure>
+          <svg viewBox="0 0 800 386" role="img" aria-labelledby="fig21-t fig21-d" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto">
+            <title id="fig21-t">五种模态的数据单位、代表数据集与关键参数</title>
+            <desc id="fig21-d">语音识别、语音合成、通用音频分类、图文、视频五种模态，分别对应不同的数据单位、代表数据集与需要对齐的参数（采样率、说话人、时间戳、帧率等）。</desc>
+            <rect x="0" y="0" width="800" height="386" fill="#ffffff"/>
+            <g font-family="system-ui, 'PingFang SC', sans-serif">
+              <text x="400" y="26" text-anchor="middle" font-size="14" font-weight="700" fill="#5b21b6">加载之前先问清：数据单位是什么，要对齐哪些参数</text>
+              <g font-size="11">
+                <rect x="30" y="42" width="740" height="58" rx="9" fill="#ede9fe" stroke="#8b5cf6" stroke-width="1.6"/>
+                <text x="46" y="64" font-weight="700" font-size="12" fill="#5b21b6">语音识别 ASR</text><text x="200" y="64" fill="#334155">音频 + 转录文本</text>
+                <text x="46" y="86" fill="#64748b" font-size="10.5">LibriSpeech / Common Voice / WenetSpeech</text><text x="540" y="86" fill="#334155" font-size="10.5">采样率、文本对齐</text>
+                <rect x="30" y="106" width="740" height="58" rx="9" fill="#e0f2fe" stroke="#0ea5e9" stroke-width="1.6"/>
+                <text x="46" y="128" font-weight="700" font-size="12" fill="#0369a1">语音合成 TTS</text><text x="200" y="128" fill="#334155">文本 + 音频</text>
+                <text x="46" y="150" fill="#64748b" font-size="10.5">LJSpeech / VCTK</text><text x="540" y="150" fill="#334155" font-size="10.5">单/多说话人、采样率</text>
+                <rect x="30" y="170" width="740" height="58" rx="9" fill="#ccfbf1" stroke="#14b8a6" stroke-width="1.6"/>
+                <text x="46" y="192" font-weight="700" font-size="12" fill="#0f766e">通用音频分类</text><text x="200" y="192" fill="#334155">音频 + 多标签事件</text>
+                <text x="46" y="214" fill="#64748b" font-size="10.5">AudioSet / ESC-50</text><text x="540" y="214" fill="#334155" font-size="10.5">事件标签、时长切片</text>
+                <rect x="30" y="234" width="740" height="58" rx="9" fill="#fef3c7" stroke="#f59e0b" stroke-width="1.6"/>
+                <text x="46" y="256" font-weight="700" font-size="12" fill="#92400e">图文多模态</text><text x="200" y="256" fill="#334155">图像 + 描述文本</text>
+                <text x="46" y="278" fill="#64748b" font-size="10.5">Flickr30k / Conceptual Captions</text><text x="540" y="278" fill="#334155" font-size="10.5">图文匹配、caption 质量</text>
+                <rect x="30" y="298" width="740" height="58" rx="9" fill="#ffe4e6" stroke="#f43f5e" stroke-width="1.6"/>
+                <text x="46" y="320" font-weight="700" font-size="12" fill="#9f1239">视频多模态</text><text x="200" y="320" fill="#334155">视频 + 描述文本</text>
+                <text x="46" y="342" fill="#64748b" font-size="10.5">WebVid-10M / MSR-VTT</text><text x="540" y="342" fill="#334155" font-size="10.5">帧率、时空对齐</text>
+              </g>
+              <text x="400" y="376" text-anchor="middle" font-size="11" fill="#64748b">模态划分与参数列为教学整理；数据集规模随版本变化</text>
+            </g>
+          </svg>
+          <figcaption>图1：五种模态各有自己的数据单位与需要对齐的参数（采样率、说话人、时间戳、帧率），先把这些定清楚再谈加载。模态划分与参数列为教学整理。</figcaption>
+        </figure>
 
         <h2>语音识别（ASR）数据集</h2>
 
@@ -149,6 +198,7 @@ print(wenet[0])
                 </tr>
             </tbody>
         </table>
+        <p class="caveat">上表总时长等数字引自各数据集官方说明（如 WenetSpeech 官方称超过 1 万小时），HF Hub 上的具体切分可能不同，以 Dataset Card 为准。</p>
 
         <div class="tip">
             <strong>音频加载最佳实践：</strong>处理多个ASR数据集时，最头疼的问题是采样率不一致。LibriSpeech是16kHz，Common Voice各有不同（部分语言是48kHz），WenetSpeech是16kHz。在训练之前，<strong>一律重采样到模型期望的采样率</strong>（Whisper是16kHz，Wav2Vec2是16kHz，Conformer可能有不同要求）。用datasets的 <code>.cast_column("audio", Audio(sampling_rate=16000))</code> 可以自动完成重采样。
@@ -330,7 +380,8 @@ print(f"每个视频的描述数: {len(msrvtt[0]['caption'])}")
             <a href="index.html">📖 返回目录</a>
             <a href="22.html">下一章 →</a>
         </div>
-    </div>
+    </article>
+    </main>
 </div>
 </div>
 </body>

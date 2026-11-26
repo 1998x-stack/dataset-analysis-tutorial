@@ -5,11 +5,28 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes">
     <title>第24章 自定义数据集构建</title>
     <link rel="stylesheet" href="theme.css">
+    <style>
+        .skip-link { position:absolute; left:-999px; top:0; z-index:100; background:#0369a1; color:#fff; padding:10px 18px; border-radius:0 0 12px 0; text-decoration:none; font-weight:600; }
+        .skip-link:focus { left:0; }
+        .main-content h1 { color:#0c4a6e; font-size:1.9rem; line-height:1.35; margin:0 0 6px; }
+        .dek { color:#53676d; font-size:1.02rem; line-height:1.7; margin:0 0 10px; }
+        figure { margin:26px 0; }
+        figure svg { width:100%; height:auto; display:block; }
+        figcaption { color:#0c4a6e; font-size:0.92rem; line-height:1.7; margin-top:10px; padding-left:12px; border-left:4px solid #7dd3fc; }
+        .caveat { font-size:0.85rem; color:#7c5a10; background:#fef9c3; border-radius:10px; padding:8px 12px; margin:8px 0 14px; line-height:1.65; }
+        a:focus-visible { outline:3px solid #0ea5e9; outline-offset:2px; }
+        .table-wrap { overflow-x:auto; margin:15px 0; }
+        pre { overflow-x:auto; max-width:100%; }
+        table { display:block; width:100%; overflow-x:auto; }
+        th, td { overflow-wrap:anywhere; }
+        @media (prefers-reduced-motion: reduce) { * { transition:none !important; animation:none !important; } }
+    </style>
 </head>
 <body>
+<a class="skip-link" href="#content">跳转至正文</a>
 <div class="double-border">
 <div class="container">
-    <div class="sidebar">
+    <nav class="sidebar" aria-label="课程目录">
         <h3>📊 课程目录</h3>
         <ul class="chapter-list">
             <li><a href="01.html">第1章 AI数据集全景图</a></li>
@@ -41,10 +58,12 @@
             <li><a href="27.html">第27章 前沿基准数据集巡览</a></li>
             <li><a href="28.html">第28章 综合实战项目</a></li>
         </ul>
-    </div>
-    <div class="main-content">
+    </nav>
+    <main id="content" class="main-content">
+    <article>
 
-        <h2>第24章：自定义数据集构建</h2>
+        <h1>第24章：自定义数据集构建</h1>
+        <p class="dek">从 dict、generator、Parquet 三种来源出发，把原始数据变成类型安全、可缓存、可发布的标准 Dataset。</p>
 
         <p>到此前的23章为止，我们一直在讨论如何使用现有的数据集——加载、检查、清洗、可视化。但在真实的AI工程中，你面对的数据很少是"开箱即用"的公开数据集。更多时候，你需要从零构建自己的数据集：从业务数据库导出、从标注平台下载、从原始的日志文件解析、或者从AP.I.接口逐条抓取。本章就是专门讲这件事的——如何用 Hugging Face datasets 库，把各种来源的原始数据转换成标准化的、可训练的 Dataset 对象。</p>
 
@@ -100,6 +119,42 @@
                 </tr>
             </tbody>
         </table>
+
+        <figure>
+            <svg viewBox="0 0 760 280" role="img" aria-label="三种构建方式对比：from_dict 全量入内存、from_generator 逐条流式写入、from_parquet 内存映射零拷贝，最终都产出标准化 Dataset" xmlns="http://www.w3.org/2000/svg">
+                <title>三种构建方式如何汇聚到标准 Dataset</title>
+                <rect x="0" y="0" width="760" height="280" fill="#f8fafc"/>
+                <text x="20" y="30" font-size="16" font-weight="700" fill="#0c4a6e">来源 → 构建方式 → 标准化 Dataset</text>
+                <!-- sources -->
+                <rect x="20" y="58" width="150" height="44" rx="6" fill="#e0f2fe" stroke="#0284c7"/>
+                <text x="32" y="85" font-size="13" fill="#0c4a6e">Pandas / 内存</text>
+                <rect x="20" y="126" width="150" height="44" rx="6" fill="#e0f2fe" stroke="#0284c7"/>
+                <text x="32" y="153" font-size="13" fill="#0c4a6e">DB / API / 文件流</text>
+                <rect x="20" y="194" width="150" height="44" rx="6" fill="#e0f2fe" stroke="#0284c7"/>
+                <text x="32" y="221" font-size="13" fill="#0c4a6e">已有 Parquet</text>
+                <!-- methods -->
+                <rect x="220" y="58" width="270" height="44" rx="6" fill="#bae6fd" stroke="#0284c7"/>
+                <text x="234" y="78" font-size="13" font-weight="700" fill="#0c4a6e">Dataset.from_dict()</text>
+                <text x="234" y="95" font-size="11" fill="#334155">全量加载到内存</text>
+                <rect x="220" y="126" width="270" height="44" rx="6" fill="#bae6fd" stroke="#0284c7"/>
+                <text x="234" y="146" font-size="13" font-weight="700" fill="#0c4a6e">Dataset.from_generator()</text>
+                <text x="234" y="163" font-size="11" fill="#334155">逐条生成，低内存</text>
+                <rect x="220" y="194" width="270" height="44" rx="6" fill="#bae6fd" stroke="#0284c7"/>
+                <text x="234" y="214" font-size="13" font-weight="700" fill="#0c4a6e">Dataset.from_parquet()</text>
+                <text x="234" y="231" font-size="11" fill="#334155">内存映射，零拷贝</text>
+                <!-- arrows -->
+                <g stroke="#64748b" stroke-width="2" fill="none">
+                    <path d="M170 80 H220"/><path d="M170 148 H220"/><path d="M170 216 H220"/>
+                    <path d="M490 80 C 545 80 545 148 545 148"/><path d="M490 148 H545"/><path d="M490 216 C 545 216 545 148 545 148"/>
+                </g>
+                <!-- output -->
+                <rect x="560" y="96" width="180" height="104" rx="8" fill="#0369a1"/>
+                <text x="576" y="128" font-size="14" font-weight="700" fill="#ffffff">标准化 Dataset</text>
+                <text x="576" y="150" font-size="11" fill="#e0f2fe">Features 类型声明</text>
+                <text x="576" y="168" font-size="11" fill="#e0f2fe">Arrow 缓存 / 可发布</text>
+            </svg>
+            <figcaption>三条构建路径共享同一出口：无论数据来自内存、流式接口还是 Parquet，datasets 都会落成带 Features 声明的 Arrow 缓存数据集。分叉只影响“什么时候占多少内存”，不改变下游 <code>map()</code>/<code>filter()</code> 的用法。</figcaption>
+        </figure>
 
         <p>三种方式不是互斥的，实际项目中经常组合使用：从数据库导出为Parquet，然后用 <code>from_parquet()</code> 加载，再叠加 <code>map()</code> 做预处理。下面逐一深入。</p>
 
@@ -392,7 +447,8 @@ print(f"验证集: {len(dataset['valid'])} 条")</code></pre>
             <a href="index.html">📖 返回目录</a>
             <a href="25.html">下一章 →</a>
         </div>
-    </div>
+    </article>
+    </main>
 </div>
 </div>
 </body>

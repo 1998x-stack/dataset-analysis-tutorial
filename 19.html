@@ -5,11 +5,28 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes">
     <title>第19章 NLP经典数据集</title>
     <link rel="stylesheet" href="theme.css">
+    <style>
+        .skip-link { position:absolute; left:-999px; top:0; z-index:100; background:#6d28d9; color:#fff; padding:10px 18px; border-radius:0 0 12px 0; text-decoration:none; font-weight:600; }
+        .skip-link:focus { left:0; }
+        .main-content h1 { color:#4c1d95; font-size:1.9rem; line-height:1.35; margin:0 0 6px; }
+        .dek { color:#53676d; font-size:1.02rem; line-height:1.7; margin:0 0 10px; }
+        figure { margin:26px 0; }
+        figure svg { width:100%; height:auto; display:block; }
+        figcaption { color:#4c1d95; font-size:0.92rem; line-height:1.7; margin-top:10px; padding-left:12px; border-left:4px solid #c4b5fd; }
+        .caveat { font-size:0.85rem; color:#7c5a10; background:#fef9c3; border-radius:10px; padding:8px 12px; margin:8px 0 14px; line-height:1.65; }
+        a:focus-visible { outline:3px solid #8b5cf6; outline-offset:2px; }
+        .table-wrap { overflow-x:auto; margin:15px 0; -webkit-overflow-scrolling:touch; }
+        pre { overflow-x:auto; max-width:100%; }
+        table { display:block; width:100%; overflow-x:auto; }
+        th, td { overflow-wrap:anywhere; }
+        @media (prefers-reduced-motion: reduce) { * { transition:none !important; animation:none !important; } }
+    </style>
 </head>
 <body>
+<a class="skip-link" href="#content">跳转至正文</a>
 <div class="double-border">
 <div class="container">
-    <div class="sidebar">
+    <nav class="sidebar" aria-label="课程目录">
         <h3>📊 课程目录</h3>
         <ul class="chapter-list">
             <li><a href="01.html">第1章 AI数据集全景图</a></li>
@@ -41,10 +58,12 @@
             <li><a href="27.html">第27章 前沿基准数据集巡览</a></li>
             <li><a href="28.html">第28章 综合实战项目</a></li>
         </ul>
-    </div>
-    <div class="main-content">
+    </nav>
+    <main id="content" class="main-content">
+    <article>
 
-        <h2>第19章：NLP经典数据集</h2>
+        <h1>第19章：NLP经典数据集</h1>
+        <p class="dek">按“理解→检索→生成→标注→分类”五条任务线巡览经典数据集：任务形态不同，输入结构与评测指标也不同。</p>
 
         <p>自然语言处理可能是AI所有分支中"数据集种类最丰富"的领域。不像计算机视觉有ImageNet一统江湖，NLP的任务类型千差万别——分类需要标签、生成需要参考答案、问答需要篇章、NER需要BIO标注。一个做文本分类的数据集和一个做摘要的数据集，它们的结构、规模、加载方式几乎没有任何共同点。</p>
 
@@ -53,6 +72,48 @@
         <div class="highlight">
             <strong>本章路线图：</strong>我们将按照"理解→检索→生成→标注→分类"的逻辑线，覆盖NLP五大数据品类。每个品类都会给出HF Hub上的加载标识符、典型样例和常见陷阱，让你在实战中能快速找到并正确使用最合适的数据集。
         </div>
+
+        <figure>
+          <svg viewBox="0 0 800 330" role="img" aria-labelledby="fig19-t fig19-d" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto">
+            <title id="fig19-t">NLP 五类任务线与代表数据集</title>
+            <desc id="fig19-d">理解（GLUE/SuperGLUE）、检索问答（SQuAD/Natural Questions）、生成（CNN-DailyMail/XSum）、序列标注（CoNLL-2003/OntoNotes）、分类（IMDB/Amazon Reviews），并列出各自常用评测指标。</desc>
+            <rect x="0" y="0" width="800" height="330" fill="#ffffff"/>
+            <g font-family="system-ui, 'PingFang SC', sans-serif">
+              <text x="400" y="30" text-anchor="middle" font-size="14" font-weight="700" fill="#5b21b6">同一个 datasets 接口，五种截然不同的数据结构</text>
+              <g font-size="11" text-anchor="middle">
+                <rect x="24" y="52" width="140" height="188" rx="11" fill="#ede9fe" stroke="#8b5cf6" stroke-width="1.8"/>
+                <text x="94" y="80" font-weight="700" font-size="12" fill="#5b21b6">理解</text>
+                <text x="94" y="106" fill="#334155">GLUE</text><text x="94" y="126" fill="#334155">SuperGLUE</text>
+                <text x="94" y="156" font-size="10" fill="#64748b">指标</text><text x="94" y="174" fill="#334155" font-size="10.5">Accuracy / F1</text><text x="94" y="192" fill="#334155" font-size="10.5">Matthews / Pearson</text>
+                <text x="94" y="222" font-size="10" fill="#64748b">句对 + 标签</text>
+                <rect x="178" y="52" width="140" height="188" rx="11" fill="#e0f2fe" stroke="#0ea5e9" stroke-width="1.8"/>
+                <text x="248" y="80" font-weight="700" font-size="12" fill="#0369a1">检索问答</text>
+                <text x="248" y="106" fill="#334155">SQuAD v2</text><text x="248" y="126" fill="#334155">Natural Questions</text>
+                <text x="248" y="156" font-size="10" fill="#64748b">指标</text><text x="248" y="174" fill="#334155" font-size="10.5">EM / F1</text>
+                <text x="248" y="222" font-size="10" fill="#64748b">篇章 + 答案跨度</text>
+                <rect x="332" y="52" width="140" height="188" rx="11" fill="#ccfbf1" stroke="#14b8a6" stroke-width="1.8"/>
+                <text x="402" y="80" font-weight="700" font-size="12" fill="#0f766e">生成</text>
+                <text x="402" y="106" fill="#334155">CNN/DailyMail</text><text x="402" y="126" fill="#334155">XSum</text>
+                <text x="402" y="156" font-size="10" fill="#64748b">指标</text><text x="402" y="174" fill="#334155" font-size="10.5">ROUGE / BLEU</text>
+                <text x="402" y="222" font-size="10" fill="#64748b">文档 + 参考摘要</text>
+                <rect x="486" y="52" width="140" height="188" rx="11" fill="#fef3c7" stroke="#f59e0b" stroke-width="1.8"/>
+                <text x="556" y="80" font-weight="700" font-size="12" fill="#92400e">序列标注</text>
+                <text x="556" y="106" fill="#334155">CoNLL-2003</text><text x="556" y="126" fill="#334155">OntoNotes 5.0</text>
+                <text x="556" y="156" font-size="10" fill="#64748b">指标</text><text x="556" y="174" fill="#334155" font-size="10.5">Entity-level F1</text>
+                <text x="556" y="222" font-size="10" fill="#64748b">token + BIO 标签</text>
+                <rect x="640" y="52" width="140" height="188" rx="11" fill="#ffe4e6" stroke="#f43f5e" stroke-width="1.8"/>
+                <text x="710" y="80" font-weight="700" font-size="12" fill="#9f1239">分类</text>
+                <text x="710" y="106" fill="#334155">IMDB</text><text x="710" y="126" fill="#334155">Amazon Reviews</text>
+                <text x="710" y="156" font-size="10" fill="#64748b">指标</text><text x="710" y="174" fill="#334155" font-size="10.5">Accuracy / F1</text>
+                <text x="710" y="222" font-size="10" fill="#64748b">文本 + 类别</text>
+              </g>
+              <rect x="24" y="262" width="756" height="48" rx="10" fill="#fffbeb" stroke="#f59e0b" stroke-width="1.5"/>
+              <text x="402" y="284" text-anchor="middle" font-size="12" fill="#92400e">选型看任务形态与标注结构，而非只看热度；训练量级估算须注明硬件与超参</text>
+              <text x="402" y="302" text-anchor="middle" font-size="11" fill="#64748b">五类划分与指标为教学整理</text>
+            </g>
+          </svg>
+          <figcaption>图1：NLP 五类任务线对应不同的输入结构与评测指标，选型时应先对齐任务形态。图中分类与指标为教学整理，数据集规模数字引自各自原始数据集，可能随版本微调。</figcaption>
+        </figure>
 
         <h2>通用语言理解基准 — GLUE与SuperGLUE</h2>
 
@@ -150,6 +211,8 @@ print(sst2["train"][0])
                 </tr>
             </tbody>
         </table>
+
+        <p class="caveat">上表各子任务的训练样本数引自 GLUE 原始数据集（v1.0 基准），实际通过 <code>datasets</code> 加载得到的数量可能因版本/切分而异，以加载后的 <code>len(ds)</code> 为准。</p>
 
         <p>有趣的是，WNLI只有634条训练样本，是GLUE中最小的子任务——因为Winograd句子本身构造困难。而SuperGLUE更进一步，引入了BoolQ（布尔问答）、CB（蕴涵）、COPA（因果推理）等更硬核的任务。加载方式与GLUE相同：</p>
 
@@ -409,6 +472,7 @@ amazon = amazon.map(to_sentiment)</code></pre>
         <div class="tip">
             <strong>规模建议：</strong>"训练时间"取决于你的硬件、批大小和训练轮数。上表的估算基于单卡V100和标准超参数配置。如果数据集特别大（比如Natural Questions），强烈建议先用 <code>streaming=True</code> 配合 <code>.take(1000)</code> 做一个快速基线测试，确认数据质量没问题再全量训练。
         </div>
+        <p class="caveat">表中“2-6 小时”等训练时间为教学示意量级（单卡 V100、标准超参），实际耗时随硬件/批大小/轮数浮动，不应作为基准数字引用。</p>
 
         <p>选好数据集只是第一步。第20章我们将转向计算机视觉领域——那里的数据形态完全不同：不再是文本和标签，而是像素矩阵、边界框和分割掩码。准备好切换大脑的"模态开关"了吗？</p>
 
@@ -417,7 +481,8 @@ amazon = amazon.map(to_sentiment)</code></pre>
             <a href="index.html">📖 返回目录</a>
             <a href="20.html">下一章 →</a>
         </div>
-    </div>
+    </article>
+    </main>
 </div>
 </div>
 </body>

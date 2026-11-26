@@ -5,11 +5,28 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes">
     <title>第25章 数据管线自动化</title>
     <link rel="stylesheet" href="theme.css">
+    <style>
+        .skip-link { position:absolute; left:-999px; top:0; z-index:100; background:#047857; color:#fff; padding:10px 18px; border-radius:0 0 12px 0; text-decoration:none; font-weight:600; }
+        .skip-link:focus { left:0; }
+        .main-content h1 { color:#065f46; font-size:1.9rem; line-height:1.35; margin:0 0 6px; }
+        .dek { color:#53676d; font-size:1.02rem; line-height:1.7; margin:0 0 10px; }
+        figure { margin:26px 0; }
+        figure svg { width:100%; height:auto; display:block; }
+        figcaption { color:#065f46; font-size:0.92rem; line-height:1.7; margin-top:10px; padding-left:12px; border-left:4px solid #6ee7b7; }
+        .caveat { font-size:0.85rem; color:#7c5a10; background:#fef9c3; border-radius:10px; padding:8px 12px; margin:8px 0 14px; line-height:1.65; }
+        a:focus-visible { outline:3px solid #10b981; outline-offset:2px; }
+        .table-wrap { overflow-x:auto; margin:15px 0; }
+        pre { overflow-x:auto; max-width:100%; }
+        table { display:block; width:100%; overflow-x:auto; }
+        th, td { overflow-wrap:anywhere; }
+        @media (prefers-reduced-motion: reduce) { * { transition:none !important; animation:none !important; } }
+    </style>
 </head>
 <body>
+<a class="skip-link" href="#content">跳转至正文</a>
 <div class="double-border">
 <div class="container">
-    <div class="sidebar">
+    <nav class="sidebar" aria-label="课程目录">
         <h3>📊 课程目录</h3>
         <ul class="chapter-list">
             <li><a href="01.html">第1章 AI数据集全景图</a></li>
@@ -41,10 +58,12 @@
             <li><a href="27.html">第27章 前沿基准数据集巡览</a></li>
             <li><a href="28.html">第28章 综合实战项目</a></li>
         </ul>
-    </div>
-    <div class="main-content">
+    </nav>
+    <main id="content" class="main-content">
+    <article>
 
-        <h2>第25章：数据管线自动化</h2>
+        <h1>第25章：数据管线自动化</h1>
+        <p class="dek">把零散脚本重构成可复用、可测试、能防数据泄漏的管线：五个阶段、一份配置，换参数不改代码。</p>
 
         <p>走到第25章，我们已经深入学习了一个 AI 数据工程师需要的绝大部分技能：数据加载、清洗、转换、EDA、自定义构建……但还有一个关键问题没有回答——如何把这些零散的步骤组织成一个<strong>可复用、可维护、可测试</strong>的自动化流程？当团队里有五个人在同时处理同一个数据集的不同版本时，如何确保每个人执行的预处理逻辑完全一致？当数据集从100GB增长到10TB时，如何在不重写代码的前提下扩展管线？</p>
 
@@ -122,6 +141,36 @@
                 </tr>
             </tbody>
         </table>
+
+        <figure>
+            <svg viewBox="0 0 780 240" role="img" aria-label="数据管线的五个阶段从左到右串联，一份配置字典向每个阶段提供参数，前置阶段只负责推导而不改变后端推理用法" xmlns="http://www.w3.org/2000/svg">
+                <title>五个阶段串联的数据管线</title>
+                <rect x="0" y="0" width="780" height="240" fill="#f8fafc"/>
+                <text x="20" y="32" font-size="16" font-weight="700" fill="#065f46">一条管线 = 固定的阶段链 + 可变的配置</text>
+                <g font-size="12" text-anchor="middle">
+                    <rect x="20" y="70" width="128" height="52" rx="6" fill="#d1fae5" stroke="#059669"/>
+                    <text x="84" y="92" fill="#064e3b">数据接入</text><text x="84" y="110" fill="#334155" font-size="10">CSV/DB/API</text>
+                    <rect x="172" y="70" width="128" height="52" rx="6" fill="#a7f3d0" stroke="#059669"/>
+                    <text x="236" y="92" fill="#064e3b">数据清洗</text><text x="236" y="110" fill="#334155" font-size="10">去重/缺失/异常</text>
+                    <rect x="324" y="70" width="128" height="52" rx="6" fill="#6ee7b7" stroke="#059669"/>
+                    <text x="388" y="92" fill="#064e3b">特征工程</text><text x="388" y="110" fill="#334155" font-size="10">编码/缩放/嵌入</text>
+                    <rect x="476" y="70" width="128" height="52" rx="6" fill="#34d399" stroke="#059669"/>
+                    <text x="540" y="92" fill="#064e3b">格式转换</text><text x="540" y="110" fill="#334155" font-size="10">tensor/batching</text>
+                    <rect x="628" y="70" width="128" height="52" rx="6" fill="#10b981" stroke="#047857"/>
+                    <text x="692" y="92" fill="#ffffff">数据输出</text><text x="692" y="110" fill="#ecfdf5" font-size="10">split/写盘/Hub</text>
+                </g>
+                <g stroke="#059669" stroke-width="2" fill="none">
+                    <path d="M148 96 H172"/><path d="M300 96 H324"/><path d="M452 96 H476"/><path d="M604 96 H628"/>
+                </g>
+                <rect x="172" y="160" width="432" height="46" rx="6" fill="#ecfdf5" stroke="#059669" stroke-dasharray="5 4"/>
+                <text x="388" y="182" font-size="12" text-anchor="middle" fill="#065f46">配置字典：每个阶段只接收自己的参数</text>
+                <text x="388" y="198" font-size="10" text-anchor="middle" fill="#334155">换参数 → 改配置；换模块 → 换实现，其余步骤不动</text>
+                <g stroke="#059669" stroke-width="1.5" fill="none" stroke-dasharray="4 4">
+                    <path d="M236 160 V122"/><path d="M388 160 V122"/><path d="M540 160 V122"/>
+                </g>
+            </svg>
+            <figcaption>阶段顺序固定、模块可插拔：一份配置向各阶段注入参数，换归一化方式或换数据集只需改配置，而不是通读脚本。阶段间的“标准数据接口”正是 <code>fit</code>/<code>transform</code> 分离得以成立的前提，也是下一节防数据泄漏的基础。</figcaption>
+        </figure>
 
         <div class="tip">
             <strong>设计建议：</strong>把这五个阶段作为模板固定下来。对于每个新项目，只需要决定"哪些步骤跳过、哪些步骤增加、每个步骤的参数是什么"，不需要重新设计管线架构。这是"约定优于配置"的思想在数据工程中的体现。
@@ -381,7 +430,8 @@ def assert_data_quality(df: pd.DataFrame):
             <a href="index.html">📖 返回目录</a>
             <a href="26.html">下一章 →</a>
         </div>
-    </div>
+    </article>
+    </main>
 </div>
 </div>
 </body>

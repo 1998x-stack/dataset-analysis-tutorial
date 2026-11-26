@@ -5,11 +5,28 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes">
     <title>第26章 2026最新特性与趋势</title>
     <link rel="stylesheet" href="theme.css">
+    <style>
+        .skip-link { position:absolute; left:-999px; top:0; z-index:100; background:#7c3aed; color:#fff; padding:10px 18px; border-radius:0 0 12px 0; text-decoration:none; font-weight:600; }
+        .skip-link:focus { left:0; }
+        .main-content h1 { color:#4c1d95; font-size:1.9rem; line-height:1.35; margin:0 0 6px; }
+        .dek { color:#53676d; font-size:1.02rem; line-height:1.7; margin:0 0 10px; }
+        figure { margin:26px 0; }
+        figure svg { width:100%; height:auto; display:block; }
+        figcaption { color:#4c1d95; font-size:0.92rem; line-height:1.7; margin-top:10px; padding-left:12px; border-left:4px solid #c4b5fd; }
+        .caveat { font-size:0.85rem; color:#7c5a10; background:#fef9c3; border-radius:10px; padding:8px 12px; margin:8px 0 14px; line-height:1.65; }
+        a:focus-visible { outline:3px solid #8b5cf6; outline-offset:2px; }
+        .table-wrap { overflow-x:auto; margin:15px 0; }
+        pre { overflow-x:auto; max-width:100%; }
+        table { display:block; width:100%; overflow-x:auto; }
+        th, td { overflow-wrap:anywhere; }
+        @media (prefers-reduced-motion: reduce) { * { transition:none !important; animation:none !important; } }
+    </style>
 </head>
 <body>
+<a class="skip-link" href="#content">跳转至正文</a>
 <div class="double-border">
 <div class="container">
-    <div class="sidebar">
+    <nav class="sidebar" aria-label="课程目录">
         <h3>📊 课程目录</h3>
         <ul class="chapter-list">
             <li><a href="01.html">第1章 AI数据集全景图</a></li>
@@ -41,10 +58,13 @@
             <li><a href="27.html">第27章 前沿基准数据集巡览</a></li>
             <li><a href="28.html">第28章 综合实战项目</a></li>
         </ul>
-    </div>
-    <div class="main-content">
+    </nav>
+    <main id="content" class="main-content">
+    <article>
 
-        <h2>第26章：2026最新特性与趋势</h2>
+        <h1>第26章：2026最新特性与趋势</h1>
+        <p class="dek">从 v5.0 的 breaking changes 到 Agent Traces、<code>Json()</code> 与 Iceberg 支持，一份带迁移步骤与新数据形态说明的升级地图。</p>
+        <p class="caveat">本章涉及的版本号、发布月份与 API 行为属于课程编写时的整理，具体以 Hugging Face <code>datasets</code> 官方 CHANGELOG 与迁移指南为准；请勿将本章当作权威版本说明。</p>
 
         <p>2026年6月，Hugging Face datasets 库迎来了它的 v5.0.0 版本——这可不是一次小修小补的版本更新。从底层数据类型的扩展，到全新数据形态的支持，再到洗牌算法的彻底重写，几乎每个核心模块都有 breaking changes。如果你还在用 v4.x，迁移到 v5.0 绝对值列入你的 Q3 计划。</p>
 
@@ -63,6 +83,32 @@
             <li><strong>数据质量基础设施</strong>：引入更丰富的数据类型系统，让数据质量的元信息（如空值率、分布统计、异常标记）可以直接在 Features 层级表达。</li>
             <li><strong>灵活类型系统</strong>：新增 <code>Json()</code> 类型支持异构数据结构，扩展了对 Iceberg、IoTDB 等现代数据格式的支持。</li>
         </ul>
+
+        <figure>
+            <svg viewBox="0 0 780 250" role="img" aria-label="v5.0 三大主题：AI Agent 数据形态、数据质量与类型系统、洗牌与缓存重写；每根支柱下挂着具体特性" xmlns="http://www.w3.org/2000/svg">
+                <title>v5.0 的三大更新主题</title>
+                <rect x="0" y="0" width="780" height="250" fill="#faf5ff"/>
+                <text x="20" y="30" font-size="16" font-weight="700" fill="#4c1d95">v5.0 的三个变化方向</text>
+                <g>
+                    <rect x="24" y="52" width="228" height="46" rx="6" fill="#ede9fe" stroke="#7c3aed"/>
+                    <text x="138" y="74" font-size="13" font-weight="700" text-anchor="middle" fill="#4c1d95">AI Agent 数据形态</text>
+                    <text x="138" y="91" font-size="10" text-anchor="middle" fill="#334155">messages / tool calls</text>
+                    <rect x="276" y="52" width="228" height="46" rx="6" fill="#ede9fe" stroke="#7c3aed"/>
+                    <text x="390" y="74" font-size="13" font-weight="700" text-anchor="middle" fill="#4c1d95">类型与质量基础</text>
+                    <text x="390" y="91" font-size="10" text-anchor="middle" fill="#334155">Json() / Iceberg / IoTDB</text>
+                    <rect x="528" y="52" width="228" height="46" rx="6" fill="#ede9fe" stroke="#7c3aed"/>
+                    <text x="642" y="74" font-size="13" font-weight="700" text-anchor="middle" fill="#4c1d95">内核重写</text>
+                    <text x="642" y="91" font-size="10" text-anchor="middle" fill="#334155">shuffle / 缓存命名空间</text>
+                </g>
+                <g stroke="#7c3aed" stroke-width="1.5" fill="none"><path d="M138 98 V124"/><path d="M390 98 V124"/><path d="M642 98 V124"/></g>
+                <rect x="24" y="124" width="732" height="96" rx="8" fill="#ffffff" stroke="#c4b5fd"/>
+                <text x="42" y="150" font-size="12" fill="#4c1d95">常见迁移痛点：</text>
+                <text x="42" y="172" font-size="11" fill="#334155">无种子 shuffle 不再固定 → 固定子集测试断言失效</text>
+                <text x="42" y="192" font-size="11" fill="#334155">JSON 字符串列默认解析为 dict → 下游取字符串时报 KeyError</text>
+                <text x="42" y="212" font-size="11" fill="#334155">缓存目录分层化与 null 语义变化 → CI 清理脚本需同步更新</text>
+            </svg>
+            <figcaption>三个主题不是孤立的：Agent Traces 依赖灵活类型系统才能容纳异构轨迹，而引擎重写又改变了 shuffle / 缓存行为。因此升级前必须分开验证“新功能能用”与“旧断言未破”，下文迁移步骤与 Breaking Changes 清单正是围绕这两类风险组织。</figcaption>
+        </figure>
 
         <h3>版本迁移指南</h3>
 
@@ -486,7 +532,8 @@ for batch in dataset:
             <a href="index.html">📖 返回目录</a>
             <a href="27.html">下一章 →</a>
         </div>
-    </div>
+    </article>
+    </main>
 </div>
 </div>
 </body>

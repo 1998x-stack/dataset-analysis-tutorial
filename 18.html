@@ -5,11 +5,28 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes">
     <title>第18章 数据集合规与许可证</title>
     <link rel="stylesheet" href="theme.css">
+    <style>
+        .skip-link { position:absolute; left:-999px; top:0; z-index:100; background:#6d28d9; color:#fff; padding:10px 18px; border-radius:0 0 12px 0; text-decoration:none; font-weight:600; }
+        .skip-link:focus { left:0; }
+        .main-content h1 { color:#4c1d95; font-size:1.9rem; line-height:1.35; margin:0 0 6px; }
+        .dek { color:#53676d; font-size:1.02rem; line-height:1.7; margin:0 0 10px; }
+        figure { margin:26px 0; }
+        figure svg { width:100%; height:auto; display:block; }
+        figcaption { color:#4c1d95; font-size:0.92rem; line-height:1.7; margin-top:10px; padding-left:12px; border-left:4px solid #c4b5fd; }
+        .caveat { font-size:0.85rem; color:#7c5a10; background:#fef9c3; border-radius:10px; padding:8px 12px; margin:8px 0 14px; line-height:1.65; }
+        a:focus-visible { outline:3px solid #8b5cf6; outline-offset:2px; }
+        .table-wrap { overflow-x:auto; margin:15px 0; -webkit-overflow-scrolling:touch; }
+        pre { overflow-x:auto; max-width:100%; }
+        table { display:block; width:100%; overflow-x:auto; }
+        th, td { overflow-wrap:anywhere; }
+        @media (prefers-reduced-motion: reduce) { * { transition:none !important; animation:none !important; } }
+    </style>
 </head>
 <body>
+<a class="skip-link" href="#content">跳转至正文</a>
 <div class="double-border">
 <div class="container">
-    <div class="sidebar">
+    <nav class="sidebar" aria-label="课程目录">
         <h3>📊 课程目录</h3>
         <ul class="chapter-list">
             <li><a href="01.html">第1章 AI数据集全景图</a></li>
@@ -41,10 +58,12 @@
             <li><a href="27.html">第27章 前沿基准数据集巡览</a></li>
             <li><a href="28.html">第28章 综合实战项目</a></li>
         </ul>
-    </div>
-    <div class="main-content">
+    </nav>
+    <main id="content" class="main-content">
+    <article>
 
-        <h2>第18章：数据集合规与许可证</h2>
+        <h1>第18章：数据集合规与许可证</h1>
+        <p class="dek">把“能不能用”拆成四道闸门：许可证、隐私、来源与发布，每道都留下可追溯的证据链。</p>
 
         <p>2025年9月，一家欧洲的AI初创公司收到了一封来自Getty Images的律师函。原因？他们用LAION-5B数据集训练的商业图像生成模型生成的图片中，出现了Getty Images的带水印照片的变体。尽管LAION数据集本身只是一堆"图文链接"，不包含实际的图片文件，但在训练过程中，模型"记住了"训练数据中的某些图片——包括那些受版权保护的图片。当用户输入特定提示词时，模型生成的结果与原照片的相似度高达95%以上。Getty Images要求该公司要么支付天价授权费，要么下架整个模型。</p>
 
@@ -55,6 +74,51 @@
         <div class="warning">
             <strong>免责声明：</strong>本章内容仅提供通用性信息参考，不构成法律意见。在具体数据合规问题上，请务必咨询执业律师。不同司法管辖区（中国大陆、欧盟、美国、日本等）的法律要求存在显著差异。
         </div>
+        <p class="caveat">开篇 Getty/LAION 案例为教学叙事，其中“相似度 95%”等为示意值；下文涉及的判例年份、罚则金额与数据集下架时间均为概览性总结，可能随法规修订或案件进展变化，请以官方文本与实际案卷为准。</p>
+
+        <figure>
+          <svg viewBox="0 0 800 360" role="img" aria-labelledby="fig18-t fig18-d" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto">
+            <title id="fig18-t">数据集合规的四道闸门</title>
+            <desc id="fig18-d">从数据集选择、数据处理、模型训练到模型发布四阶段，每道闸门各自检查许可证、个人信息与来源、匿名化与变更日志、隔离环境与提取攻击，任一道不过则不能进入下一阶段。</desc>
+            <rect x="0" y="0" width="800" height="360" fill="#ffffff"/>
+            <g font-family="system-ui, 'PingFang SC', sans-serif">
+              <text x="400" y="30" text-anchor="middle" font-size="14" font-weight="700" fill="#5b21b6">合规不是一次性审批，而是四道串联的闸门</text>
+              <g font-size="11.5">
+                <rect x="30" y="52" width="170" height="196" rx="11" fill="#ede9fe" stroke="#8b5cf6" stroke-width="1.8"/>
+                <text x="115" y="78" text-anchor="middle" font-weight="700" fill="#5b21b6">① 数据集选择</text>
+                <text x="48" y="106" fill="#334155">• 许可证允许商用？</text>
+                <text x="48" y="130" fill="#334155">• 含个人信息？</text>
+                <text x="48" y="154" fill="#334155">• 来源合法？</text>
+                <text x="48" y="178" fill="#64748b" font-size="10.5">排除 CC-NC/ND</text>
+                <rect x="220" y="52" width="170" height="196" rx="11" fill="#e0f2fe" stroke="#0ea5e9" stroke-width="1.8"/>
+                <text x="305" y="78" text-anchor="middle" font-weight="700" fill="#0369a1">② 数据处理</text>
+                <text x="238" y="106" fill="#334155">• 标识符脱敏？</text>
+                <text x="238" y="130" fill="#334155">• 泛化准标识符？</text>
+                <text x="238" y="154" fill="#334155">• 重识别评估？</text>
+                <text x="238" y="178" fill="#64748b" font-size="10.5">保留变更日志</text>
+                <rect x="410" y="52" width="170" height="196" rx="11" fill="#ccfbf1" stroke="#14b8a6" stroke-width="1.8"/>
+                <text x="495" y="78" text-anchor="middle" font-weight="700" fill="#0f766e">③ 模型训练</text>
+                <text x="428" y="106" fill="#334155">• 隔离环境？</text>
+                <text x="428" y="130" fill="#334155">• 记录数据版本？</text>
+                <text x="428" y="154" fill="#334155">• 可删数据重训？</text>
+                <text x="428" y="178" fill="#64748b" font-size="10.5">应对被遗忘权</text>
+                <rect x="600" y="52" width="170" height="196" rx="11" fill="#fef3c7" stroke="#f59e0b" stroke-width="1.8"/>
+                <text x="685" y="78" text-anchor="middle" font-weight="700" fill="#92400e">④ 模型发布</text>
+                <text x="618" y="106" fill="#334155">• 提取攻击测试？</text>
+                <text x="618" y="130" fill="#334155">• 模型卡注明来源？</text>
+                <text x="618" y="154" fill="#334155">• 法务审核？</text>
+                <text x="618" y="178" fill="#64748b" font-size="10.5">每 6 个月复查</text>
+              </g>
+              <g stroke="#94a3b8" stroke-width="2" fill="#94a3b8">
+                <line x1="200" y1="150" x2="220" y2="150"/><line x1="390" y1="150" x2="410" y2="150"/><line x1="580" y1="150" x2="600" y2="150"/>
+              </g>
+              <rect x="30" y="272" width="740" height="60" rx="10" fill="#fffbeb" stroke="#f59e0b" stroke-width="1.5"/>
+              <text x="400" y="298" text-anchor="middle" font-size="12" fill="#92400e">任一道闸门不过就不进入下一阶段；许可证、判例与法规会变，合规是持续过程</text>
+              <text x="400" y="318" text-anchor="middle" font-size="11" fill="#64748b">清单为工程自查提纲，不构成法律意见</text>
+            </g>
+          </svg>
+          <figcaption>图1：合规拆成选择→处理→训练→发布四道串联闸门，与本章末尾的企业清单一一对应。阶段划分与检查项是工程自查提纲，不构成法律意见；具体法规、判例与日期请以官方文本为准。</figcaption>
+        </figure>
 
         <h2>开源许可证速查</h2>
 
@@ -235,6 +299,7 @@ def proper_anonymize(record):
             <li><strong>中国（2025）</strong>：最高人民法院发布《关于人工智能生成内容相关纠纷的法律适用指南》，明确使用他人享有著作权的作品训练AI模型可能构成侵权，特别是当模型输出与训练数据实质性相似时。</li>
             <li><strong>日本（2024）</strong>：日本修订著作权法，明确允许为AI训练目的使用版权作品（包括商用），但不得损害原作品权利人的利益。这是目前全球对训练数据最宽松的法律框架之一。</li>
         </ul>
+        <p class="caveat">以上法律进展为写作时的概览总结，年份与结论可能已有更新（例如部分案件的审理仍在进行），不代表权威法律解释。</p>
 
         <p>这意味着，<strong>同样从CommonCrawl爬取的数据训练模型，在日本是明确的合法，但在欧盟和美国可能面临诉讼风险</strong>。如果你的模型面向全球用户，你需要按照最严格司法辖区的要求来评估数据合规性。</p>
 
@@ -435,7 +500,8 @@ else:
             <a href="index.html">📖 返回目录</a>
             <a href="19.html">下一章 →</a>
         </div>
-    </div>
+    </article>
+    </main>
 </div>
 </div>
 </body>

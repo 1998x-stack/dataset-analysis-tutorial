@@ -5,11 +5,28 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes">
     <title>第16章 常见踩坑与故障排查</title>
     <link rel="stylesheet" href="theme.css">
+    <style>
+        .skip-link { position:absolute; left:-999px; top:0; z-index:100; background:#6d28d9; color:#fff; padding:10px 18px; border-radius:0 0 12px 0; text-decoration:none; font-weight:600; }
+        .skip-link:focus { left:0; }
+        .main-content h1 { color:#4c1d95; font-size:1.9rem; line-height:1.35; margin:0 0 6px; }
+        .dek { color:#53676d; font-size:1.02rem; line-height:1.7; margin:0 0 10px; }
+        figure { margin:26px 0; }
+        figure svg { width:100%; height:auto; display:block; }
+        figcaption { color:#4c1d95; font-size:0.92rem; line-height:1.7; margin-top:10px; padding-left:12px; border-left:4px solid #c4b5fd; }
+        .caveat { font-size:0.85rem; color:#7c5a10; background:#fef9c3; border-radius:10px; padding:8px 12px; margin:8px 0 14px; line-height:1.65; }
+        a:focus-visible { outline:3px solid #8b5cf6; outline-offset:2px; }
+        .table-wrap { overflow-x:auto; margin:15px 0; -webkit-overflow-scrolling:touch; }
+        pre { overflow-x:auto; max-width:100%; }
+        table { display:block; width:100%; overflow-x:auto; }
+        th, td { overflow-wrap:anywhere; }
+        @media (prefers-reduced-motion: reduce) { * { transition:none !important; animation:none !important; } }
+    </style>
 </head>
 <body>
+<a class="skip-link" href="#content">跳转至正文</a>
 <div class="double-border">
 <div class="container">
-    <div class="sidebar">
+    <nav class="sidebar" aria-label="课程目录">
         <h3>📊 课程目录</h3>
         <ul class="chapter-list">
             <li><a href="01.html">第1章 AI数据集全景图</a></li>
@@ -41,10 +58,12 @@
             <li><a href="27.html">第27章 前沿基准数据集巡览</a></li>
             <li><a href="28.html">第28章 综合实战项目</a></li>
         </ul>
-    </div>
-    <div class="main-content">
+    </nav>
+    <main id="content" class="main-content">
+    <article>
 
-        <h2>第16章：常见踩坑与故障排查</h2>
+        <h1>第16章：常见踩坑与故障排查</h1>
+        <p class="dek">把 datasets 的高频故障整理成一张定位地图：先分版本/缓存/内存/并发/兼容，再用二分法与最小复现脚本收敛。</p>
 
         <p>一家AI创业公司，团队花了3天追踪一个诡异的bug：同样的训练脚本，昨天跑得好好的，今天跑结果完全不一样。模型性能从AUC 0.87直接掉到0.51——和随机猜没区别。代码没改、数据没换、硬件没变，一切似乎都"对"的。团队排查了梯度更新、损失函数、模型初始化种子，全都不是问题所在。直到有人发现，这三天之间datasets库悄悄从v4.24.0升级到了v5.0.0，而v5.0.0中 <code>shuffle</code> 的默认行为变了——默认启用了 <code>buffer_size</code> 的重新调整，导致数据顺序完全不同。</p>
 
@@ -54,10 +73,52 @@
             <strong>本章定位：</strong>这不是一本"报错大全"，而是一张"陷阱地图"。我们会把已知的坑分类整理，告诉你每个坑的识别方法和解决方案。当你以后遇到奇怪的问题，可以翻回这一章对号入座。
         </div>
 
+        <figure>
+          <svg viewBox="0 0 800 380" role="img" aria-labelledby="fig16-t fig16-d" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto">
+            <title id="fig16-t">故障定位地图：从症状到自查再到类别</title>
+            <desc id="fig16-d">三种典型症状（结果异常、抛出异常、内存暴涨）先经过四步自查（datasets 版本、PyArrow 版本、缓存、streaming shuffle buffer），再归入版本、缓存、内存、并发、兼容五类根因。</desc>
+            <rect x="0" y="0" width="800" height="380" fill="#ffffff"/>
+            <g font-family="system-ui, 'PingFang SC', sans-serif">
+              <text x="400" y="28" text-anchor="middle" font-size="14" font-weight="700" fill="#5b21b6">先归类，再动手：大多数“奇怪”问题能先自查收敛</text>
+              <g font-size="12" text-anchor="middle">
+                <rect x="40" y="46" width="200" height="52" rx="10" fill="#fef2f2" stroke="#ef4444" stroke-width="1.8"/>
+                <text x="140" y="68" font-weight="700" fill="#b91c1c">症状：结果异常</text><text x="140" y="88" font-size="11" fill="#334155">数据没变 / 指标毒化</text>
+                <rect x="300" y="46" width="200" height="52" rx="10" fill="#fef2f2" stroke="#ef4444" stroke-width="1.8"/>
+                <text x="400" y="68" font-weight="700" fill="#b91c1c">症状：抛出异常</text><text x="400" y="88" font-size="11" fill="#334155">KeyError / ArrowInvalid</text>
+                <rect x="560" y="46" width="200" height="52" rx="10" fill="#fef2f2" stroke="#ef4444" stroke-width="1.8"/>
+                <text x="660" y="68" font-weight="700" fill="#b91c1c">症状：内存暴涨</text><text x="660" y="88" font-size="11" fill="#334155">OOM / 系统卡顿</text>
+              </g>
+              <g stroke="#94a3b8" stroke-width="1.6">
+                <line x1="140" y1="98" x2="140" y2="126"/><line x1="400" y1="98" x2="400" y2="126"/><line x1="660" y1="98" x2="660" y2="126"/>
+              </g>
+              <rect x="40" y="126" width="720" height="74" rx="10" fill="#eef2ff" stroke="#6366f1" stroke-width="1.8"/>
+              <text x="400" y="150" text-anchor="middle" font-size="12.5" font-weight="700" fill="#3730a3">四步自查（按成本从低到高）</text>
+              <text x="400" y="172" text-anchor="middle" font-size="11.5" fill="#334155">① datasets 版本 · ② PyArrow 版本 · ③ 清掉旧缓存重跑 · ④ streaming 是否显式设 shuffle buffer_size</text>
+              <text x="400" y="192" text-anchor="middle" font-size="11" fill="#64748b">删除 ~/.cache/huggingface/datasets/ 后重跑，可排除相当一部分假故障</text>
+              <g stroke="#94a3b8" stroke-width="1.6"><line x1="400" y1="200" x2="400" y2="226"/></g>
+              <g font-size="11.5" text-anchor="middle">
+                <rect x="30" y="226" width="140" height="70" rx="10" fill="#ede9fe" stroke="#8b5cf6" stroke-width="1.8"/>
+                <text x="100" y="252" font-weight="700" fill="#5b21b6">版本类</text><text x="100" y="274" font-size="10.5" fill="#334155">API 行为变更</text>
+                <rect x="185" y="226" width="140" height="70" rx="10" fill="#e0f2fe" stroke="#0ea5e9" stroke-width="1.8"/>
+                <text x="255" y="252" font-weight="700" fill="#0369a1">缓存类</text><text x="255" y="274" font-size="10.5" fill="#334155">旧缓存被误用</text>
+                <rect x="340" y="226" width="140" height="70" rx="10" fill="#ccfbf1" stroke="#14b8a6" stroke-width="1.8"/>
+                <text x="410" y="252" font-weight="700" fill="#0f766e">内存类</text><text x="410" y="274" font-size="10.5" fill="#334155">to_pandas / 对象开销</text>
+                <rect x="495" y="226" width="140" height="70" rx="10" fill="#fef3c7" stroke="#f59e0b" stroke-width="1.8"/>
+                <text x="565" y="252" font-weight="700" fill="#92400e">并发类</text><text x="565" y="274" font-size="10.5" fill="#334155">锁竞争 / 并发上传</text>
+                <rect x="650" y="226" width="140" height="70" rx="10" fill="#ffe4e6" stroke="#f43f5e" stroke-width="1.8"/>
+                <text x="720" y="252" font-weight="700" fill="#9f1239">兼容类</text><text x="720" y="274" font-size="10.5" fill="#334155">PyArrow / fsspec 冲突</text>
+              </g>
+              <rect x="30" y="318" width="760" height="48" rx="10" fill="#fffbeb" stroke="#f59e0b" stroke-width="1.5"/>
+              <text x="410" y="340" text-anchor="middle" font-size="12" fill="#92400e">仍未解决→二分法定位首次出问题的版本，再附上最小复现脚本求助</text>
+              <text x="410" y="358" text-anchor="middle" font-size="11" fill="#64748b">二分法与最小复现旨在把“玄学”变成可复制的排查步骤</text>
+            </g>
+          </svg>
+          <figcaption>图1：把“奇怪问题”先归到五类根因中的一类，再按四步自查收敛；只有自查无果时才动用二分版本定位与最小复现脚本。图中分类与自查顺序属教学整理，除引用到的具体 Issue 外不代表官方文档条目。</figcaption>
+        </figure>
+
         <h2>十大经典错误一览</h2>
 
         <p>以下表格汇总了datasets库使用中最常见的10个错误，覆盖了我在社区中见到的大约80%的问题：</p>
-
         <table>
             <thead>
                 <tr>
@@ -145,6 +206,7 @@
         <div class="tip">
             <strong>快速自查清单：</strong>遇到奇怪的问题时，先依次检查——①datasets版本 ②PyArrow版本 ③缓存目录有没有旧数据 ④streaming模式下是不是忘了设shuffle buffer。这四样解决了大部分问题。
         </div>
+        <p class="caveat">表中“约 80%”是作者在社区问答中的经验估计，非官方统计；标注版本号（如 v5.0.0、fsspec 2026.4.0）的具体行为和 Issue 编号会随版本修复而变化，请对照当前 release notes 核实。</p>
 
         <h2>缓存冲突与并发安全</h2>
 
@@ -248,7 +310,7 @@ conda install fsspec=2025.12.0</code></pre>
 
         <h3>PyArrow 版本兼容矩阵</h3>
 
-        <p>PyArrow 是 datasets 的核心依赖。不同版本的 PyArrow 写出的 Arrow 文件格式可能不兼容。下表是经过测试的兼容矩阵：</p>
+        <p>PyArrow 是 datasets 的核心依赖。不同版本的 PyArrow 写出的 Arrow 文件格式可能不兼容。下表是经过测试的兼容矩阵（教学示意，非官方兼容性承诺）：</p>
 
         <table>
             <thead>
@@ -381,7 +443,8 @@ ds = load_dataset("imdb", split="train")
             <a href="index.html">📖 返回目录</a>
             <a href="17.html">下一章 →</a>
         </div>
-    </div>
+    </article>
+    </main>
 </div>
 </div>
 </body>

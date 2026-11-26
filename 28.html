@@ -5,11 +5,28 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes">
     <title>第28章 综合实战项目</title>
     <link rel="stylesheet" href="theme.css">
+    <style>
+        .skip-link { position:absolute; left:-999px; top:0; z-index:100; background:#0f766e; color:#fff; padding:10px 18px; border-radius:0 0 12px 0; text-decoration:none; font-weight:600; }
+        .skip-link:focus { left:0; }
+        .main-content h1 { color:#115e59; font-size:1.9rem; line-height:1.35; margin:0 0 6px; }
+        .dek { color:#53676d; font-size:1.02rem; line-height:1.7; margin:0 0 10px; }
+        figure { margin:26px 0; }
+        figure svg { width:100%; height:auto; display:block; }
+        figcaption { color:#115e59; font-size:0.92rem; line-height:1.7; margin-top:10px; padding-left:12px; border-left:4px solid #5eead4; }
+        .caveat { font-size:0.85rem; color:#7c5a10; background:#fef9c3; border-radius:10px; padding:8px 12px; margin:8px 0 14px; line-height:1.65; }
+        a:focus-visible { outline:3px solid #14b8a6; outline-offset:2px; }
+        .table-wrap { overflow-x:auto; margin:15px 0; }
+        pre { overflow-x:auto; max-width:100%; }
+        table { display:block; width:100%; overflow-x:auto; }
+        th, td { overflow-wrap:anywhere; }
+        @media (prefers-reduced-motion: reduce) { * { transition:none !important; animation:none !important; } }
+    </style>
 </head>
 <body>
+<a class="skip-link" href="#content">跳转至正文</a>
 <div class="double-border">
 <div class="container">
-    <div class="sidebar">
+    <nav class="sidebar" aria-label="课程目录">
         <h3>📊 课程目录</h3>
         <ul class="chapter-list">
             <li><a href="01.html">第1章 AI数据集全景图</a></li>
@@ -41,10 +58,12 @@
             <li><a href="27.html">第27章 前沿基准数据集巡览</a></li>
             <li><a href="28.html" class="active">第28章 综合实战项目</a></li>
         </ul>
-    </div>
-    <div class="main-content">
+    </nav>
+    <main id="content" class="main-content">
+    <article>
 
-        <h2>第28章：综合实战项目</h2>
+        <h1>第28章：综合实战项目</h1>
+        <p class="dek">以中文法律 NER 为载体的端到端闭环：采集、清洗标注、可复现管线、训练迭代到发布上线。</p>
 
         <p>"如果让我重做这个项目，我会把 80% 的时间花在数据上。"这句话出自我们团队法律 AI 项目复盘时首席科学家之口。我们花了一个半月搭模型架构、调超参数，最后模型在 NER 任务上的 F1 分数一直卡在 76% 上下。回过头去排查，发现数据标注中实体边界不一致、法条编号格式混乱、刑期字段存在大量空值和异常值——数据清洗阶段的任何一个问题，如果在早期被系统化处理，都不至于到模型训练阶段才暴露。如果一开始就有这 28 章的知识，至少能省一半的时间。</p>
 
@@ -108,6 +127,37 @@
                 </tr>
             </tbody>
         </table>
+
+        <figure>
+            <svg viewBox="0 0 780 280" role="img" aria-label="中文法律 NER 项目的五个阶段串联，训练迭代后将错误分析反馈回清洗标注形成闭环，共同产出可发布的数据集与基线模型" xmlns="http://www.w3.org/2000/svg">
+                <title>端到端项目闭环</title>
+                <rect x="0" y="0" width="780" height="280" fill="#f0fdfa"/>
+                <text x="20" y="30" font-size="16" font-weight="700" fill="#115e59">数据集工程五阶段闭环</text>
+                <g font-size="12" text-anchor="middle">
+                    <rect x="24" y="54" width="132" height="52" rx="6" fill="#ccfbf1" stroke="#0d9488"/>
+                    <text x="90" y="76" fill="#134e4a">1 采集与探索</text><text x="90" y="94" font-size="10" fill="#334155">JSONL + EDA</text>
+                    <rect x="176" y="54" width="132" height="52" rx="6" fill="#99f6e4" stroke="#0d9488"/>
+                    <text x="242" y="76" fill="#134e4a">2 清洗与标注</text><text x="242" y="94" font-size="10" fill="#334155">去重 / BIO</text>
+                    <rect x="328" y="54" width="132" height="52" rx="6" fill="#5eead4" stroke="#0d9488"/>
+                    <text x="394" y="76" fill="#134e4a">3 可复现管线</text><text x="394" y="94" font-size="10" fill="#334155">Features / split</text>
+                    <rect x="480" y="54" width="132" height="52" rx="6" fill="#2dd4bf" stroke="#0d9488"/>
+                    <text x="546" y="76" fill="#134e4a">4 训练与迭代</text><text x="546" y="94" font-size="10" fill="#334155">F1 / 错误分析</text>
+                    <rect x="632" y="54" width="124" height="52" rx="6" fill="#0d9488" stroke="#115e59"/>
+                    <text x="694" y="76" fill="#ffffff">5 发布上线</text><text x="694" y="94" font-size="10" fill="#ccfbf1">HF Hub</text>
+                </g>
+                <g stroke="#0d9488" stroke-width="2" fill="none">
+                    <path d="M156 80 H176"/><path d="M308 80 H328"/><path d="M460 80 H480"/><path d="M612 80 H632"/>
+                </g>
+                <path d="M546 106 V170 H242 V106" stroke="#0f766e" stroke-width="2" fill="none" stroke-dasharray="6 4" marker-end="url(#arr)"/>
+                <defs><marker id="arr" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto"><path d="M0 0 L7 3 L0 6 z" fill="#0f766e"/></marker></defs>
+                <text x="394" y="192" font-size="12" text-anchor="middle" fill="#0f766e">错误分析 → 修复数据 → 再训练（三明治迭代）</text>
+                <rect x="176" y="212" width="580" height="48" rx="8" fill="#ffffff" stroke="#5eead4"/>
+                <text x="466" y="234" font-size="11" text-anchor="middle" fill="#334155">交付物：可复现数据管线 + 发布到 Hub 的数据集 + BERT 基线模型</text>
+                <text x="466" y="251" font-size="11" text-anchor="middle" fill="#334155">版本：v1 → v4（每轮迭代以 F1 与人工复查共同验收）</text>
+            </svg>
+            <figcaption>五个阶段并非单向流水线：第 4 阶段的错误分析会反向触发第 2 阶段的标注修复，形成“训-析-改”闭环。闭环使数据集能随迭代逐步收敛，而不是一次性做完再交付。</figcaption>
+        </figure>
+        <p class="caveat">本章的文书数量、实体占比、F1 分数与迭代日期均为教学示意，用于说明项目流程与决策节奏，不对应公开可复现的某一真实数据集；实际数值以你自己项目为准。</p>
 
         <div class="warning">
             <strong>法律数据合规提醒：</strong>中国裁判文书网的公开文书虽然可以自由获取用于学术研究，但发布时需要注意：（1）不能包含未脱敏的个人信息（身份证号、家庭住址等）；（2）如果计划发布数据集，建议使用"合成数据"或"脱敏后"版本；（3）数据集的许可证建议选择 CC BY-NC 4.0，限制商业用途。具体的合规框架请回顾第 18 章的内容。
@@ -804,7 +854,8 @@ def monitor_drift(reference_dist, production_dist, threshold=0.1):
             <a href="index.html">📖 返回目录</a>
             <a href="javascript:void(0)">下一章 →</a>
         </div>
-    </div>
+    </article>
+    </main>
 </div>
 </div>
 </body>

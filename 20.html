@@ -5,11 +5,28 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes">
     <title>第20章 计算机视觉经典数据集</title>
     <link rel="stylesheet" href="theme.css">
+    <style>
+        .skip-link { position:absolute; left:-999px; top:0; z-index:100; background:#6d28d9; color:#fff; padding:10px 18px; border-radius:0 0 12px 0; text-decoration:none; font-weight:600; }
+        .skip-link:focus { left:0; }
+        .main-content h1 { color:#4c1d95; font-size:1.9rem; line-height:1.35; margin:0 0 6px; }
+        .dek { color:#53676d; font-size:1.02rem; line-height:1.7; margin:0 0 10px; }
+        figure { margin:26px 0; }
+        figure svg { width:100%; height:auto; display:block; }
+        figcaption { color:#4c1d95; font-size:0.92rem; line-height:1.7; margin-top:10px; padding-left:12px; border-left:4px solid #c4b5fd; }
+        .caveat { font-size:0.85rem; color:#7c5a10; background:#fef9c3; border-radius:10px; padding:8px 12px; margin:8px 0 14px; line-height:1.65; }
+        a:focus-visible { outline:3px solid #8b5cf6; outline-offset:2px; }
+        .table-wrap { overflow-x:auto; margin:15px 0; -webkit-overflow-scrolling:touch; }
+        pre { overflow-x:auto; max-width:100%; }
+        table { display:block; width:100%; overflow-x:auto; }
+        th, td { overflow-wrap:anywhere; }
+        @media (prefers-reduced-motion: reduce) { * { transition:none !important; animation:none !important; } }
+    </style>
 </head>
 <body>
+<a class="skip-link" href="#content">跳转至正文</a>
 <div class="double-border">
 <div class="container">
-    <div class="sidebar">
+    <nav class="sidebar" aria-label="课程目录">
         <h3>📊 课程目录</h3>
         <ul class="chapter-list">
             <li><a href="01.html">第1章 AI数据集全景图</a></li>
@@ -41,10 +58,12 @@
             <li><a href="27.html">第27章 前沿基准数据集巡览</a></li>
             <li><a href="28.html">第28章 综合实战项目</a></li>
         </ul>
-    </div>
-    <div class="main-content">
+    </nav>
+    <main id="content" class="main-content">
+    <article>
 
-        <h2>第20章：计算机视觉经典数据集</h2>
+        <h1>第20章：计算机视觉经典数据集</h1>
+        <p class="dek">按金字塔自上而下选数据：分类、检测、分割到生成式图文，标注密度与加载方式逐层不同。</p>
 
         <p>你训练的图像分类模型在CIFAR-10上跑到了95%的准确率，你信心满满地把它部署到一个真实产品中。结果上线后，实际准确率掉到了60%——模型把厨房里的橘子识别成"台灯"，把沙发上的抱枕当成"猫"。问题出在哪里？大概率不是你的模型结构，而是你的训练数据跟真实世界的差距太大了。</p>
 
@@ -54,6 +73,38 @@
             <strong>CV数据集的金字塔结构：</strong>底层是图像分类数据集（ImageNet、CIFAR），中层是目标检测（COCO、Pascal VOC），上层是语义分割（ADE20K、Cityscapes），顶端是生成式图文数据（LAION-5B）。每一层对数据的标注密度和复杂性要求依次递增。
         </div>
 
+        <figure>
+          <svg viewBox="0 0 800 386" role="img" aria-labelledby="fig20-t fig20-d" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto">
+            <title id="fig20-t">计算机视觉数据集的金字塔</title>
+            <desc id="fig20-d">从底层的图像分类（ImageNet/CIFAR/MNIST）、中层目标检测（COCO 2017/Pascal VOC）、上层语义分割（ADE20K/Cityscapes）到顶端的生成式图文数据（LAION-5B/COCO Captions），标注密度与结构复杂性逐层递增。</desc>
+            <rect x="0" y="0" width="800" height="386" fill="#ffffff"/>
+            <g font-family="system-ui, 'PingFang SC', sans-serif">
+              <text x="400" y="26" text-anchor="middle" font-size="14" font-weight="700" fill="#5b21b6">向上：标注密度与结构复杂性递增</text>
+              <g stroke="#94a3b8" stroke-width="2" fill="#94a3b8">
+                <line x1="120" y1="330" x2="120" y2="70"/>
+                <polygon points="120,58 114,72 126,72"/>
+              </g>
+              <text x="70" y="200" text-anchor="middle" font-size="11" fill="#64748b" transform="rotate(-90 70 200)">标注密度↑</text>
+              <g font-size="11.5">
+                <rect x="150" y="54" width="620" height="60" rx="10" fill="#ede9fe" stroke="#8b5cf6" stroke-width="1.8"/>
+                <text x="170" y="80" font-weight="700" fill="#5b21b6">生成式图文（顶端）</text>
+                <text x="170" y="102" font-size="10.5" fill="#334155">LAION-5B（58 亿图文对，需 streaming）/ COCO Captions</text>
+                <rect x="150" y="132" width="620" height="60" rx="10" fill="#e0f2fe" stroke="#0ea5e9" stroke-width="1.8"/>
+                <text x="170" y="158" font-weight="700" fill="#0369a1">语义分割（上层）</text>
+                <text x="170" y="180" font-size="10.5" fill="#334155">ADE20K（逐像素标签）/ Cityscapes（自动驾驶场景）</text>
+                <rect x="150" y="210" width="620" height="60" rx="10" fill="#ccfbf1" stroke="#14b8a6" stroke-width="1.8"/>
+                <text x="170" y="236" font-weight="700" fill="#0f766e">目标检测 / 实例分割（中层）</text>
+                <text x="170" y="258" font-size="10.5" fill="#334155">COCO 2017（检测界 ImageNet）/ Pascal VOC</text>
+                <rect x="150" y="288" width="620" height="60" rx="10" fill="#fef3c7" stroke="#f59e0b" stroke-width="1.8"/>
+                <text x="170" y="314" font-weight="700" fill="#92400e">图像分类（底层）</text>
+                <text x="170" y="336" font-size="10.5" fill="#334155">ImageNet-1K（128 万图 / 1000 类）/ CIFAR-10/100 / MNIST</text>
+              </g>
+              <text x="400" y="372" text-anchor="middle" font-size="11" fill="#64748b">层次划分为教学整理；规模数字引自各自原始数据集</text>
+            </g>
+          </svg>
+          <figcaption>图1：CV 数据集按标注密度与结构复杂性分为四层，选型时从任务所需标签形态出发（类别→框→像素→图文对）。层次划分属教学整理，规模数字引自各数据集的原始说明。</figcaption>
+        </figure>
+
         <h2>图像分类基石数据集</h2>
 
         <p>图像分类数据是CV世界的"普通话"——几乎所有视觉模型的预训练都从分类开始。下面三个数据集构成了CV分类任务的三大基石。</p>
@@ -61,6 +112,7 @@
         <h3>ImageNet-1K — 不可绕过的巅峰</h3>
 
         <p><strong>ImageNet</strong> 自2012年AlexNet在此一鸣惊人以来，就一直是CV领域的"高考"。ImageNet-1K包含<strong>128万张训练图片</strong>，覆盖<strong>1000个物体类别</strong>，从"金毛寻回犬"到"三角钢琴"无所不包。几乎所有现代视觉模型（ResNet、ViT、ConvNeXt、EVA）都在ImageNet上预训练，然后迁移到下游任务。</p>
+        <p class="caveat">本章各数据集的规模（如图片数、类别数）引自数据集官方说明，经 HF Hub 包装后实际切分与数量可能不同，以 <code>len(ds)</code> 与 Dataset Card 为准。</p>
 
         <pre><code>from datasets import load_dataset
 
@@ -362,7 +414,8 @@ print(f"Width range: {min(widths)}-{max(widths)}")</code></pre>
             <a href="index.html">📖 返回目录</a>
             <a href="21.html">下一章 →</a>
         </div>
-    </div>
+    </article>
+    </main>
 </div>
 </div>
 </body>

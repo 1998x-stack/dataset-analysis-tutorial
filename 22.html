@@ -5,11 +5,28 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes">
     <title>第22章 GNN与RL专项数据集</title>
     <link rel="stylesheet" href="theme.css">
+    <style>
+        .skip-link { position:absolute; left:-999px; top:0; z-index:100; background:#6d28d9; color:#fff; padding:10px 18px; border-radius:0 0 12px 0; text-decoration:none; font-weight:600; }
+        .skip-link:focus { left:0; }
+        .main-content h1 { color:#4c1d95; font-size:1.9rem; line-height:1.35; margin:0 0 6px; }
+        .dek { color:#53676d; font-size:1.02rem; line-height:1.7; margin:0 0 10px; }
+        figure { margin:26px 0; }
+        figure svg { width:100%; height:auto; display:block; }
+        figcaption { color:#4c1d95; font-size:0.92rem; line-height:1.7; margin-top:10px; padding-left:12px; border-left:4px solid #c4b5fd; }
+        .caveat { font-size:0.85rem; color:#7c5a10; background:#fef9c3; border-radius:10px; padding:8px 12px; margin:8px 0 14px; line-height:1.65; }
+        a:focus-visible { outline:3px solid #8b5cf6; outline-offset:2px; }
+        .table-wrap { overflow-x:auto; margin:15px 0; -webkit-overflow-scrolling:touch; }
+        pre { overflow-x:auto; max-width:100%; }
+        table { display:block; width:100%; overflow-x:auto; }
+        th, td { overflow-wrap:anywhere; }
+        @media (prefers-reduced-motion: reduce) { * { transition:none !important; animation:none !important; } }
+    </style>
 </head>
 <body>
+<a class="skip-link" href="#content">跳转至正文</a>
 <div class="double-border">
 <div class="container">
-    <div class="sidebar">
+    <nav class="sidebar" aria-label="课程目录">
         <h3>📊 课程目录</h3>
         <ul class="chapter-list">
             <li><a href="01.html">第1章 AI数据集全景图</a></li>
@@ -41,10 +58,12 @@
             <li><a href="27.html">第27章 前沿基准数据集巡览</a></li>
             <li><a href="28.html">第28章 综合实战项目</a></li>
         </ul>
-    </div>
-    <div class="main-content">
+    </nav>
+    <main id="content" class="main-content">
+    <article>
 
-        <h2>第22章：GNN与RL专项数据集</h2>
+        <h1>第22章：GNN与RL专项数据集</h1>
+        <p class="dek">当样本不再独立同分布：图数据保留拓扑、RL 数据保留时序，shuffle 与独立 map 都要重新审视。</p>
 
         <p>到目前为止，我们遇到的所有数据集都有一个共同假设：<strong>样本之间是独立的</strong>。NLP中每句话是独立的，CV中每张图是独立的，音频中每段录音是独立的。但这一章的两个领域从根本上打破了这个假设——图神经网络（GNN）处理的是<strong>相互连接的实体</strong>，强化学习（RL）处理的是<strong>连续决策的序列</strong>。</p>
 
@@ -53,6 +72,48 @@
         <div class="highlight">
             <strong>核心区别：</strong>图数据集的"样本"不是一个独立的数据点，而是一整个图（或多个子图）。RL数据集的"样本"不是独立事件，而是时序相关的状态转移元组 (s, a, r, s')。这种结构差异意味着你之前学的很多数据处理方法（比如随机shuffle、独立map）需要重新审视。
         </div>
+
+        <figure>
+          <svg viewBox="0 0 800 340" role="img" aria-labelledby="fig22-t fig22-d" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto">
+            <title id="fig22-t">GNN 的图样本与 RL 的时序元组</title>
+            <desc id="fig22-d">左侧 GNN 的样本是一张图或子图，节点与边共同参与计算，需保留拓扑并用邻居采样分块；右侧 RL 的样本是时序状态转移元组 (s,a,r,s')，不能随机打乱，状态需归一化并放入重放缓冲。</desc>
+            <rect x="0" y="0" width="800" height="340" fill="#ffffff"/>
+            <g font-family="system-ui, 'PingFang SC', sans-serif">
+              <text x="400" y="28" text-anchor="middle" font-size="14" font-weight="700" fill="#5b21b6">传统 i.i.d. 假设失效后的两种新“样本”</text>
+              <rect x="30" y="48" width="360" height="252" rx="12" fill="#eef2ff" stroke="#6366f1" stroke-width="1.8"/>
+              <text x="210" y="74" text-anchor="middle" font-size="13" font-weight="700" fill="#3730a3">GNN：样本 = 图 / 子图</text>
+              <g stroke="#6366f1" stroke-width="2">
+                <line x1="120" y1="120" x2="210" y2="104"/><line x1="210" y1="104" x2="290" y2="138"/><line x1="120" y1="120" x2="180" y2="190"/><line x1="180" y1="190" x2="290" y2="138"/><line x1="180" y1="190" x2="250" y2="230"/><line x1="290" y1="138" x2="250" y2="230"/>
+              </g>
+              <g fill="#c7d2fe" stroke="#4338ca" stroke-width="2">
+                <circle cx="120" cy="120" r="15"/><circle cx="210" cy="104" r="15"/><circle cx="290" cy="138" r="15"/><circle cx="180" cy="190" r="15"/><circle cx="250" cy="230" r="15"/>
+              </g>
+              <g font-size="11.5" fill="#334155">
+                <text x="52" y="266">• 保留拓扑；邻居采样做分块</text>
+                <text x="52" y="286">• batch = 多图拼接（需 block-diagonal）</text>
+              </g>
+              <rect x="410" y="48" width="360" height="252" rx="12" fill="#fff7ed" stroke="#ea580c" stroke-width="1.8"/>
+              <text x="590" y="74" text-anchor="middle" font-size="13" font-weight="700" fill="#9a3412">RL：样本 = 时序元组 (s, a, r, s')</text>
+              <g font-size="12" text-anchor="middle" font-weight="700">
+                <rect x="432" y="100" width="64" height="42" rx="8" fill="#fed7aa" stroke="#f97316" stroke-width="1.6"/><text x="464" y="126" fill="#9a3412">s</text>
+                <rect x="516" y="100" width="64" height="42" rx="8" fill="#fed7aa" stroke="#f97316" stroke-width="1.6"/><text x="548" y="126" fill="#9a3412">a</text>
+                <rect x="600" y="100" width="64" height="42" rx="8" fill="#fed7aa" stroke="#f97316" stroke-width="1.6"/><text x="632" y="126" fill="#9a3412">r</text>
+                <rect x="684" y="100" width="64" height="42" rx="8" fill="#fed7aa" stroke="#f97316" stroke-width="1.6"/><text x="716" y="126" fill="#9a3412">s'</text>
+              </g>
+              <g stroke="#f97316" stroke-width="2" fill="#f97316">
+                <line x1="496" y1="121" x2="514" y2="121"/><line x1="580" y1="121" x2="598" y2="121"/><line x1="664" y1="121" x2="682" y2="121"/>
+              </g>
+              <g font-size="11.5" fill="#334155">
+                <text x="432" y="180">• 不能随机打乱：时序关系即信息</text>
+                <text x="432" y="200">• 状态归一化，放入重放缓冲（replay buffer）</text>
+                <text x="432" y="220">• D4RL = 离线轨迹数据集</text>
+              </g>
+              <rect x="30" y="312" width="740" height="0" fill="none"/>
+              <text x="400" y="330" text-anchor="middle" font-size="11.5" fill="#64748b">共同点：数据结构决定处理方式——shuffle 与独立 map 都不再适用</text>
+            </g>
+          </svg>
+          <figcaption>图1：GNN 的“样本”是一整张图或子图，保留拓扑与邻居采样是关键；RL 的“样本”是时序状态转移元组，打乱顺序会破坏信息。对比划分为教学整理。</figcaption>
+        </figure>
 
         <h2>图数据集基础概念</h2>
 
@@ -134,6 +195,7 @@ print(cora["train"].column_names)
         </table>
 
         <p>这三个数据集的任务都是<strong>节点分类（Node Classification）</strong>——根据论文的内容特征（Bag-of-Words）和引用关系预测论文的研究领域。它们的共同特点是：图本身很小，可以完整载入单个GPU内存，非常适合GNN算法的快速试验。</p>
+        <p class="caveat">上表节点/边数与类别数引自 Planetoid 原始数据集说明，HF Hub 上的具体切分可能略有差异，以 Dataset Card 为准。</p>
 
         <pre><code># 加载Cora数据集
 cora = load_dataset("planetoid", "cora")
@@ -425,7 +487,8 @@ def normalize_states(dataset):
             <a href="index.html">📖 返回目录</a>
             <a href="23.html">下一章 →</a>
         </div>
-    </div>
+    </article>
+    </main>
 </div>
 </div>
 </body>

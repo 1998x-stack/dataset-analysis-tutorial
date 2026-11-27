@@ -269,7 +269,8 @@ for batch in dataset_stream.iter(batch_size=1000):
             <li><strong>交互式追问</strong>：用户可以对报告中的任何发现追问细节，Agent 即时生成对应的分析代码并执行</li>
         </ol>
 
-        <p>KDnuggets 在2026年初提出的<strong>五步 Agentic Workflow</strong> 是当前被引用最多的框架。它的核心洞见是：Agent 不是替代数据分析师，而是把分析师的精力从"写代码"转移到"提问和验证"。Agent 负责执行，人类负责判断。</p>
+        <p>KDnuggets 在2026年初提出的<strong>五步 Agentic Workflow</strong> 是当前被引用较多的框架。它的核心洞见是：Agent 不是替代数据分析师，而是把分析师的精力从"写代码"转移到"提问和验证"。Agent 负责执行，人类负责判断。</p>
+        <p class="caveat">时效与出处说明：本节对 Agentic EDA 与相关框架的描述为概览性介绍，具体命名、步骤与出处会随厂商与社区更新而变化，请以相应项目的官方文档与原文为准。</p>
 
         <div class="tip">
             <strong>实操建议：</strong>目前已经有几个开源项目在探索Agentic EDA，例如 pandas-ai、LangChain的数据分析Agent模板。你可以从它们开始尝试：用自然语言问你的数据集"这个数据集有多少缺失值？"、"哪些特征和标签的相关性最高？"，看Agent能否正确回答。如果不能，那说明你的数据格式或Feature定义不够清晰——这本身也是一个有用的信号。
@@ -362,8 +363,9 @@ def build_pipeline_from_config(config_path: str):
 
 
 pipeline = build_pipeline_from_config("pipeline_config.yaml")
-print(f"管线构建完成，共 {len(pipeline.transformers_)} 个处理步骤")
-# 注意：实际步骤数在 fit 之后才能通过 len(pipeline.transformers_) 获取</code></pre>
+print(f"管线构建完成，共 {len(pipeline.transformers)} 个处理步骤")
+# 注意：带下划线的 pipeline.transformers_ 要在 fit() 之后才会生成；
+# 构建阶段应读取无下划线的构造函数参数 transformers。</code></pre>
 
         <div class="highlight">
             <strong>优势在于：</strong>配置文件和代码分离后，非工程人员（如数据分析师）也可以修改YAML文件来改变管线行为，不需要懂sklearn API。数据团队可以通过Git跟踪配置文件的历史变更，回溯任何一次数据处理的参数变化。

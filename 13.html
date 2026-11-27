@@ -284,6 +284,7 @@ my_stream = stream_dataset.skip(rank * per_worker).take(per_worker)</code></pre>
         <div class="highlight">
             <strong>性能建议：</strong>在分布式训练中，数据加载往往是第一个瓶颈。如果数据存储在远程（如 S3），<strong>确保数据本地化</strong>——在训练开始前把数据拷贝到每台机器的本地 SSD 上。网络带宽在高吞吐训练中是稀缺资源，不要让数据加载和梯度通信抢带宽。实测显示，从 S3 流式加载 vs 本地 NVMe SSD 加载，速度差距可以达到 3-5 倍。
         </div>
+        <p class="caveat">数值说明：此处“3-5 倍”为教学示意中的经验量级，取决于网络带宽、对象存储延迟、文件大小与并发数，不构成可复现的基准；请以你自己的环境实测为准。</p>
 
         <h2>分片策略设计</h2>
 

@@ -291,6 +291,7 @@ info_path = os.path.join(cache_path, "imdb", "default", "0.0.0", "dataset_info.j
                 </tr>
             </tbody>
         </table>
+        <p class="caveat">数值说明：上表“Hub 上压缩大小 / Arrow 缓存大小”为量级估算，用于说明不同模态（文本压缩比高、图像/音频压缩不明显）的缓存差异。实际大小随数据集版本、切分与加载配置变化，请以下载后 <code>~/.cache/huggingface/</code> 的实测为准。</p>
 
         <h3>清理缓存命令</h3>
 
@@ -466,6 +467,7 @@ for ds in datasets_to_download:
         <p>问题出在：流水线的运行环境是<strong>每次新建的临时Docker容器</strong>。每次启动新容器时，<code>~/.cache/</code> 是空的。每次训练都要重复下载ImageNet-1k（155GB）、GLUE（1.2GB）和LibriSpeech（60GB）。</p>
 
         <p>最开始团队没注意——反正CI/CD跑着呗。直到月末查云账单的时候发现，光是数据传输费用就高达<strong>$3,000+</strong>。更关键的是，每次流水线执行时间中，数据下载占了70%的时间——真正的训练反而只占30%。</p>
+        <p class="caveat">案例说明：本 CI/CD 案例为教学简化示例，用于说明“缓存未共享”的代价；其中费用、下载耗时占比与提速幅度均为示意，不代表某一具体公司的公开账单或基准测试。</p>
 
         <p>解决方案很简单：</p>
 

@@ -288,6 +288,7 @@ dataset = Dataset.from_generator(
         <h3>Pandas → Parquet → Dataset</h3>
 
         <p>对于需要长期存储和跨项目复用的数据，Parquet是最佳目标格式。它比CSV小10倍、读写快50倍，并且保留了完整的类型信息：</p>
+        <p class="caveat">数值说明：“比 CSV 小 10 倍、读写快 50 倍”为量级示意，实际压缩率与速度取决于列类型、重复度、压缩算法（snappy/zstd）与是否含文字列；需要精确数字时请用自己的数据实测。</p>
 
         <pre><code>df = pd.read_csv("large_data.csv")
 # 类型转换

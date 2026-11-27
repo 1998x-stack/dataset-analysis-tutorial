@@ -197,6 +197,7 @@ def timed(name):
         <h3>一个真实的踩坑故事</h3>
 
         <p>某公司的AI工程师要处理一个30GB的文本数据集，做分词和过滤。他心想"我32核的服务器，num_proc设成64总没错吧，进程数比核心数多一倍，CPU总该充分利用了吧"。结果一跑，吞吐量只有预期的40%。top一看，CPU利用率和上下文切换次数都爆了。他把num_proc降到31后，吞吐量直接翻倍。原因很简单：进程数和CPU核心数相等时，每个进程独占一个核，没有上下文切换开销。超过核心数后，操作系统不得不频繁在进程间切换，切换成本抵消了并行带来的收益。</p>
+        <p class="caveat">案例说明：该 <code>num_proc</code> 轶事为教学示意，其中“吞吐只有预期的 40%”“降到 31 后翻倍”为举例数字；最佳并行度取决于任务的计算/内存比，请以 <code>num_proc</code> 扫描实测为准。</p>
 
         <p>从此之后这位工程师养成了一个习惯：<code>num_proc = os.cpu_count() - 1</code>，留一个核给操作系统。</p>
 
@@ -475,6 +476,7 @@ ds_optimized = load_from_disk("./cache/optimized_dataset")</code></pre>
                 </tr>
             </tbody>
         </table>
+        <p class="caveat">数值说明：本节 50GB 图文对案例的内存、吞吐与利用率数字为教学示意，用于演示“按序优化”的相对收益，并非某一硬件/数据集上的可复现基准；实际收益随磁盘类型（HDD/SSD）、CPU 核数、远端带宽与模型输入尺寸而变。</p>
 
         <div class="highlight">
             <strong>优化法则排序：</strong>性能优化的优先级应该是这样：1. 内存（streaming / 内存映射）→ 2. 存储格式（Snappy Parquet）→ 3. 并行度（合适num_proc + 预取）→ 4. 算法效率（collate / padding策略）。永远不要跳级——在内存还没优化之前就去调并行度，效果会很有限。

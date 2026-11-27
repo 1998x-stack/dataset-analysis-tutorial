@@ -218,8 +218,9 @@ X_val_transformed = pipeline.transform(X_val)      # 用训练集的统计量
 X_test_transformed = pipeline.transform(X_test)     # 用训练集的统计量</code></pre>
 
         <div class="highlight">
-            <strong>重要：</strong>数据泄漏是 AI 项目中隐蔽但破坏力最大的 bug 之一。它不会让程序崩溃，而是让模型评估分数虚高 5-20%，导致你在部署后才发现模型在真实场景中远不如预期。Pipeline 的强制性接口分离是预防数据泄漏最有效的工程手段。
+            <strong>重要：</strong>数据泄漏是 AI 项目中隐蔽但破坏力最大的 bug 之一。它不会让程序崩溃，而是让模型评估分数虚高 5–-20%，导致你在部署后才发现模型在真实场景中远不如预期。Pipeline 的强制性接口分离是预防数据泄漏最有效的工程手段。
         </div>
+        <p class="caveat">数值说明：“虚高 5–-20%”为教学示意中的经验区间，并非来自某一项基准实验；泄漏的实际影响取决于泄漏特征与标签的相关强度，请以你自己的消融实验为准。</p>
 
         <h3>与 HF Dataset 对接的适配器</h3>
 

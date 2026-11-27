@@ -252,7 +252,7 @@ print(type(dataset[0]["label"]))  # numpy.int64</code></pre>
 
         <h3>多后端切换实战</h3>
 
-        <p>在团队协作中，不同成员可能使用不同的深度学习框架。batasets的灵活格式切换让多框架协作变得简单：</p>
+        <p>在团队协作中，不同成员可能使用不同的深度学习框架。datasets 的灵活格式切换让多框架协作变得简单：</p>
 
         <pre><code># 同一份数据，为不同框架切换格式
 dataset = load_dataset("cifar10", split="train")
@@ -301,6 +301,8 @@ print(df["text_length"].describe())
 # std        192.472
 # min          7.000
 # max       2470.000</code></pre>
+
+        <p class="caveat">数值说明：上例 <code>text_length</code> 的均值、标准差等统计量为<strong>教学示意</strong>，用于演示 <code>to_pandas()</code> 之后可用的分析操作；实际数值随 <code>datasets</code> 版本、分词口径与数据快照而变，请以本地运行结果为准。其中 <code>shape</code> 的 25000 条、label 的 12500/12500 分布来自 IMDB 官方 train split 规模。</p>
 
         <div class="warning">
             <strong>内存警告：</strong><code>to_pandas()</code> 会生成一份完整的数据副本（从Arrow格式转换为Pandas格式）。对于大型数据集（超过可用内存的50%），这可能导致OOM。如果你只是做简单的统计，用 <code>dataset["column"]</code> 直接在Arrow上操作更省内存。需要Pandas功能时，可以先用 <code>select()</code> 取子集再转换。
@@ -426,9 +428,9 @@ print(dataset[:3]["value"])
 
 # torch格式
 dataset.set_format("torch")
-# 会报错！torch不支持NaN
-# TypeError: can't convert np.ndarray of type numpy.float64
-# 解决方案：先填充缺失值
+# 注意：None 在 numpy 阶段已经变成 NaN；torch 张量本身支持 NaN，
+# 所以这里通常不会报错，而是把 NaN 悄悄带进训练，污染后续的 loss 与梯度。
+# 解决方案：在格式转换之前显式填充缺失值
 dataset_clean = dataset.map(lambda x: {"value": x["value"] if x["value"] is not None else 0.0})
 dataset_clean.set_format("torch")
 print(dataset_clean[:3]["value"])  # tensor([1., 0., 3.])</code></pre>
